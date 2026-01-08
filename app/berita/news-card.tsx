@@ -13,14 +13,14 @@ interface NewsItem {
     slug: string;
     excerpt: string;
     featuredImage: string;
-    publishedAt: string;
-    category?: string;
-    tags?: string[];
+    publishedAt: Date | null;
+    category: string | null;
+    tags: string[] | null;
     viewCount: number;
     author: {
         id: string;
         name: string;
-    };
+    } | null;
 }
 
 export function NewsCard({ news }: { news: NewsItem }) {
@@ -63,7 +63,7 @@ export function NewsCard({ news }: { news: NewsItem }) {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
                         <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
-                            <span>{format(new Date(news.publishedAt), 'dd MMM yyyy', { locale: id })}</span>
+                            <span>{news.publishedAt ? format(news.publishedAt, 'dd MMM yyyy', { locale: id }) : 'N/A'}</span>
                         </div>
                         <span>•</span>
                         <span>{news.viewCount} views</span>

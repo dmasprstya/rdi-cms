@@ -6,8 +6,11 @@ import { id } from 'date-fns/locale';
 import { Clock, User, Eye, ArrowLeft, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { NavbarRDI } from '@/components/rdi/navbar-rdi';
+import { db } from '@/db';
+import { news } from '@/db/schema';
+import { eq, and, isNotNull, sql } from 'drizzle-orm';
 
-// Force dynamic rendering to prevent build-time fetch issues
+// Force dynamic rendering to prevent build-time issues
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Revalidate every minute
 
@@ -25,36 +28,53 @@ interface NewsDetail {
     excerpt: string;
     content: string;
     featuredImage: string;
-    publishedAt: string;
-    category?: string;
-    tags?: string[];
+    publishedAt: Date | null;
+    category: string | null;
+    tags: string[] | null;
     viewCount: number;
     author: {
         id: string;
         name: string;
-    };
+    } | null;
     images: NewsImage[];
 }
 
+// Direct database query - no fetch needed for Server Components
 async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
     try {
-        // Use relative URL for internal API calls - works in all environments
-        const baseUrl = process.env.NEXT_PUBLIC_URL || (typeof window === 'undefined' ? 'http://localhost:3000' : '');
-        const res = await fetch(
-            `${baseUrl}/api/news/${slug}`,
-            {
-                cache: 'no-store', // Always fetch fresh data
-            }
-        );
+        const newsItem = await db.query.news.findFirst({
+            where: and(
+                eq(news.slug, slug),
+                eq(news.status, 'published'),
+                isNotNull(news.publishedAt)
+            ),
+            with: {
+                author: {
+                    columns: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                images: {
+                    orderBy: (images, { asc }) => [asc(images.order)],
+                },
+            },
+        });
 
-        if (!res.ok) {
-            if (res.status === 404) return null;
-            console.error('Failed to fetch news detail:', res.status);
+        if (!newsItem) {
             return null;
         }
 
-        const data = await res.json();
-        return data.success ? data.data : null;
+        // Increment view count
+        await db
+            .update(news)
+            .set({ viewCount: sql`${news.viewCount} + 1` })
+            .where(eq(news.id, newsItem.id));
+
+        return {
+            ...newsItem,
+            viewCount: newsItem.viewCount + 1,
+        } as NewsDetail;
     } catch (error) {
         console.error('Error fetching news detail:', error);
         return null;
@@ -78,8 +98,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
             description: news.excerpt,
             images: [news.featuredImage],
             type: 'article',
-            publishedTime: news.publishedAt,
-            authors: [news.author.name],
+            publishedTime: news.publishedAt?.toISOString(),
+            authors: news.author?.name ? [news.author.name] : [],
         },
     };
 }
@@ -122,11 +142,11 @@ export default async function BeritaDetailPage({ params }: { params: { slug: str
                     <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground mb-8 pb-8 border-b">
                         <div className="flex items-center gap-2">
                             <User className="w-4 h-4" />
-                            <span>{news.author.name}</span>
+                            <span>{news.author?.name || 'Anonymous'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4" />
-                            <span>{format(new Date(news.publishedAt), 'dd MMMM yyyy', { locale: id })}</span>
+                            <span>{news.publishedAt ? format(news.publishedAt, 'dd MMMM yyyy', { locale: id }) : 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Eye className="w-4 h-4" />

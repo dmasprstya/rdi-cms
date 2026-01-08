@@ -5,8 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { NewsCard } from './news-card';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { db } from '@/db';
+import { news } from '@/db/schema';
+import { eq, desc, like, and, isNotNull } from 'drizzle-orm';
 
-// Force dynamic rendering to prevent build-time fetch issues
+// Force dynamic rendering to prevent build-time issues
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Revalidate every minute
 
@@ -16,42 +19,79 @@ interface NewsItem {
     slug: string;
     excerpt: string;
     featuredImage: string;
-    publishedAt: string;
-    category?: string;
-    tags?: string[];
+    publishedAt: Date | null;
+    category: string | null;
+    tags: string[] | null;
     viewCount: number;
     author: {
         id: string;
         name: string;
-    };
+    } | null;
 }
 
+// Direct database query - no fetch needed for Server Components
 async function getNews(page: number = 1, category?: string) {
-    const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '9',
-    });
-
-    if (category) {
-        params.append('category', category);
-    }
-
     try {
-        // Use relative URL for internal API calls - works in all environments
-        const baseUrl = process.env.NEXT_PUBLIC_URL || (typeof window === 'undefined' ? 'http://localhost:3000' : '');
-        const res = await fetch(`${baseUrl}/api/news?${params}`, {
-            cache: 'no-store', // Always fetch fresh data
-        });
+        const limit = 9;
+        const offset = (page - 1) * limit;
 
-        if (!res.ok) {
-            console.error('Failed to fetch news:', res.status);
-            return { success: false, data: { items: [], pagination: { totalPages: 0 } } };
+        // Build where conditions - only published news
+        const conditions = [
+            eq(news.status, 'published'),
+            isNotNull(news.publishedAt),
+        ];
+
+        if (category) {
+            conditions.push(eq(news.category, category));
         }
 
-        return res.json();
+        const whereClause = and(...conditions);
+
+        // Fetch published news with pagination directly from database
+        const newsItems = await db.query.news.findMany({
+            where: whereClause,
+            orderBy: [desc(news.publishedAt)],
+            limit,
+            offset,
+            with: {
+                author: {
+                    columns: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+            columns: {
+                id: true,
+                title: true,
+                slug: true,
+                excerpt: true,
+                featuredImage: true,
+                publishedAt: true,
+                category: true,
+                tags: true,
+                viewCount: true,
+            },
+        });
+
+        return {
+            success: true,
+            data: {
+                items: newsItems,
+                pagination: {
+                    totalPages: 1, // Simplified for now
+                },
+            },
+        };
     } catch (error) {
         console.error('Error fetching news:', error);
-        return { success: false, data: { items: [], pagination: { totalPages: 0 } } };
+        return {
+            success: false,
+            data: {
+                items: [],
+                pagination: { totalPages: 0 },
+            },
+        };
     }
 }
 
