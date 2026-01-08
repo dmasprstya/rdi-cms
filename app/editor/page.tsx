@@ -93,51 +93,51 @@ const sections = [
 
 export default function EditorDashboardPage() {
     return (
-        <div className="space-y-8 pb-20 lg:pb-0">
+        <div className="space-y-6 sm:space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">RDI Landing Page Editor</h1>
-                <p className="mt-2 text-muted-foreground">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">RDI Landing Page Editor</h1>
+                <p className="mt-2 text-sm sm:text-base text-muted-foreground">
                     Kelola konten halaman landing page Rosman Djohan Institute
                 </p>
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-5 border border-border">
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
                             <CheckCircle className="w-5 h-5 text-green-400" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-foreground">9</p>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">9</p>
                             <p className="text-xs text-muted-foreground">Dipublikasi</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-5 border border-border">
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center">
                             <Clock className="w-5 h-5 text-yellow-400" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-foreground">0</p>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">0</p>
                             <p className="text-xs text-muted-foreground">Draft</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-5 border border-border">
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
                             <Eye className="w-5 h-5 text-blue-400" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-foreground">9</p>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">9</p>
                             <p className="text-xs text-muted-foreground">Total Section</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-5 border border-border col-span-2 lg:col-span-1">
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-border col-span-1 xs:col-span-2 lg:col-span-1">
                     <Link
                         href="/"
                         target="_blank"
@@ -156,16 +156,16 @@ export default function EditorDashboardPage() {
 
             {/* Section Cards */}
             <div>
-                <h2 className="text-lg font-semibold text-foreground mb-4">Kelola Section RDI</h2>
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Kelola Section RDI</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                     {sections.map((section) => (
                         <Link
                             key={section.href}
                             href={section.href}
-                            className="group relative bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border hover:border-yellow-500/30 transition-all hover:shadow-lg hover:shadow-yellow-500/5"
+                            className="group relative bg-card/50 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-border hover:border-yellow-500/30 transition-all hover:shadow-lg hover:shadow-yellow-500/5"
                         >
                             {/* Status Badge */}
-                            <div className="absolute top-4 right-4">
+                            <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
                                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${section.status === 'published'
                                     ? 'bg-green-500/10 text-green-400'
                                     : 'bg-yellow-500/10 text-yellow-400'
@@ -185,12 +185,12 @@ export default function EditorDashboardPage() {
                             </div>
 
                             {/* Icon */}
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg mb-4`}>
-                                <section.icon className="w-6 h-6 text-foreground" />
+                            <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg mb-3 sm:mb-4`}>
+                                <section.icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
                             </div>
 
                             {/* Content */}
-                            <h3 className="text-lg font-semibold text-foreground group-hover:text-yellow-400 transition-colors">
+                            <h3 className="text-base sm:text-lg font-semibold text-foreground group-hover:text-yellow-400 transition-colors">
                                 {section.title}
                             </h3>
                             <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
@@ -198,7 +198,7 @@ export default function EditorDashboardPage() {
                             </p>
 
                             {/* Action */}
-                            <div className="mt-4 flex items-center gap-2 text-sm font-medium text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="mt-3 sm:mt-4 flex items-center gap-2 text-sm font-medium text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span>Edit Section</span>
                                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </div>
@@ -208,14 +208,14 @@ export default function EditorDashboardPage() {
             </div>
 
             {/* Info Box */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-6">
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 sm:p-6">
                 <div className="flex gap-3">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
                         <Eye className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-foreground mb-1">Tentang RDI Landing Page</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base">Tentang RDI Landing Page</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                             Landing page ini dirancang khusus untuk Rosman Djohan Institute.
                             Semua konten dapat diedit melalui CMS ini dan akan otomatis
                             diterapkan di halaman utama.
