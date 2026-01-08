@@ -15,10 +15,11 @@ declare global {
 const getClient = () => {
     const DATABASE_URL = process.env.DATABASE_URL;
 
-    // During build time, DATABASE_URL won't be available
-    // This check prevents the build from failing
+    // PERBAIKAN: Jangan throw error saat build, return mock client
     if (!DATABASE_URL) {
-        throw new Error('DATABASE_URL is not set');
+        // Return mock client untuk build time
+        console.warn('DATABASE_URL not set, using mock client for build');
+        return null as any;
     }
 
     // In development, use global to preserve connection across HMR
@@ -43,13 +44,20 @@ const getClient = () => {
 
 // Lazy initialization - db connection is only created when first accessed
 const getDb = () => {
+    const client = getClient();
+    
+    // PERBAIKAN: Return mock db saat build time
+    if (!client) {
+        return {} as ReturnType<typeof drizzle<typeof schema>>;
+    }
+
     if (process.env.NODE_ENV === 'development') {
         if (!global.__drizzle) {
-            global.__drizzle = drizzle(getClient(), { schema });
+            global.__drizzle = drizzle(client, { schema });
         }
         return global.__drizzle;
     }
-    return drizzle(getClient(), { schema });
+    return drizzle(client, { schema });
 };
 
 // Export a proxy that lazily initializes the database connection
