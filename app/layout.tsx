@@ -9,6 +9,7 @@ import { Suspense } from "react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://rdibabel.id'),
   title: "Rosman Djohan Institute",
   description: "Solusi digital terpadu untuk manajemen sekolah. Kelola data siswa, nilai akademik, jadwal, dan analytics dengan sistem terintegrasi yang efisien dan user-friendly.",
   keywords: ["sistem sekolah", "manajemen sekolah", "platform pendidikan", "sistem akademik", "manajemen siswa", "sistem informasi sekolah"],
