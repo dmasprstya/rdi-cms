@@ -1,6 +1,5 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -9,7 +8,8 @@ import { loginSchema } from '@/lib/validations';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     trustHost: true,
-    adapter: DrizzleAdapter(db) as any,
+    // Note: Adapter removed - not needed for JWT strategy with Credentials provider
+    // Using DrizzleAdapter caused build errors due to database access at module load time
     session: {
         strategy: 'jwt',
     },
