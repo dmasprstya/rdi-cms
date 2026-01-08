@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-12-25T17:16:49.049Z",
+  "totalBuildSize": 664492413,
+  "staticSize": 10157764,
+  "chunksSize": 9724225,
+  "appChunksSize": 1726536,
+  "pagesChunksSize": 1522039,
+  "topChunks": [
+    {
+      "name": "8914-65573476242afcee.js",
+      "size": 319505
+    },
+    {
+      "name": "fd9d1056-ad2997b340a5b373.js",
+      "size": 172535
+    },
+    {
+      "name": "framework-1158e7decabd1757.js",
+      "size": 141310
+    },
+    {
+      "name": "main-a70774eaf1f9b123.js",
+      "size": 126409
+    },
+    {
+      "name": "52774a7f-8db37864b8b0b0d4.js",
+      "size": 119427
+    },
+    {
+      "name": "4278-cd670b277c149a1b.js",
+      "size": 111792
+    },
+    {
+      "name": "polyfills-c67a75d1b6f99dc8.js",
+      "size": 91460
+    },
+    {
+      "name": "9276-b794998ee9d2a48c.js",
+      "size": 28414
+    },
+    {
+      "name": "2033-d4d7f3bb2a475690.js",
+      "size": 22335
+    },
+    {
+      "name": "7192-dd4b12a41025d4a6.js",
+      "size": 21408
+    }
+  ]
+}
