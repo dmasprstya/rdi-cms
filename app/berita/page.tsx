@@ -7,11 +7,11 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { db } from '@/db';
 import { news } from '@/db/schema';
-import { eq, desc, like, and, isNotNull } from 'drizzle-orm';
+import { eq, desc, and, isNotNull } from 'drizzle-orm';
 
-// Force dynamic rendering to prevent build-time issues
+// Force dynamic rendering to prevent build-time database calls
 export const dynamic = 'force-dynamic';
-export const revalidate = 60; // Revalidate every minute
+export const revalidate = 0; // Don't cache at all
 
 interface NewsItem {
     id: string;
@@ -29,8 +29,19 @@ interface NewsItem {
     } | null;
 }
 
-// Direct database query - no fetch needed for Server Components
+// Direct database query - only runs at runtime, not during build
 async function getNews(page: number = 1, category?: string) {
+    // During build, return empty data
+    if (!process.env.DATABASE_URL) {
+        return {
+            success: true,
+            data: {
+                items: [],
+                pagination: { totalPages: 0 },
+            },
+        };
+    }
+
     try {
         const limit = 9;
         const offset = (page - 1) * limit;
@@ -94,7 +105,6 @@ async function getNews(page: number = 1, category?: string) {
         };
     }
 }
-
 
 function NewsGridSkeleton() {
     return (

@@ -10,92 +10,90 @@ declare global {
     var __drizzle: ReturnType<typeof drizzle<typeof schema>> | undefined;
 }
 
+let client: ReturnType<typeof postgres> | null = null;
+let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
+
 // Create a singleton connection with proper pooling
-// Uses lazy initialization to prevent errors during build time
 const getClient = () => {
     const DATABASE_URL = process.env.DATABASE_URL;
 
-    // PERBAIKAN: Jangan throw error saat build, return mock client
+    // Skip during build or when DATABASE_URL is not available
     if (!DATABASE_URL) {
-        // Return mock client untuk build time
-        console.warn('DATABASE_URL not set, using mock client for build');
-        return null as any;
+        if (process.env.NODE_ENV === 'production') {
+            console.warn('⚠️ DATABASE_URL not set in production environment');
+        }
+        return null;
     }
 
     // In development, use global to preserve connection across HMR
     if (process.env.NODE_ENV === 'development') {
         if (!global.__db) {
             global.__db = postgres(DATABASE_URL, {
-                max: 10, // Maximum 10 connections in the pool
-                idle_timeout: 20, // Close idle connections after 20 seconds
-                connect_timeout: 10, // Timeout after 10 seconds if connection fails
+                max: 10,
+                idle_timeout: 20,
+                connect_timeout: 10,
             });
         }
         return global.__db;
     }
 
-    // In production, create a new pool (Next.js will manage this across serverless instances)
-    return postgres(DATABASE_URL, {
-        max: 10,
-        idle_timeout: 20,
-        connect_timeout: 10,
-    });
-};
-
-// Create a mock DB for build time that returns empty results
-const createMockDb = () => {
-    const mockHandler = {
-        select: () => mockHandler,
-        from: () => mockHandler,
-        where: () => mockHandler,
-        leftJoin: () => mockHandler,
-        orderBy: () => mockHandler,
-        limit: () => mockHandler,
-        insert: () => mockHandler,
-        values: () => mockHandler,
-        returning: () => Promise.resolve([]),
-        update: () => mockHandler,
-        set: () => mockHandler,
-        delete: () => mockHandler,
-        then: (resolve: any) => resolve([]),
-        query: new Proxy({}, {
-            get: () => ({
-                findFirst: () => Promise.resolve(null),
-                findMany: () => Promise.resolve([]),
-            }),
-        }),
-    };
-    return mockHandler as any;
+    // In production, reuse existing client or create new one
+    if (!client) {
+        client = postgres(DATABASE_URL, {
+            max: 10,
+            idle_timeout: 20,
+            connect_timeout: 10,
+        });
+    }
+    return client;
 };
 
 // Lazy initialization - db connection is only created when first accessed
 const getDb = () => {
-    const client = getClient();
-
-    // PERBAIKAN: Return functional mock db saat build time
-    if (!client) {
-        console.warn('Using mock database for build time');
-        return createMockDb();
+    const postgresClient = getClient();
+    
+    // Return null if no client available (during build)
+    if (!postgresClient) {
+        return null;
     }
 
     if (process.env.NODE_ENV === 'development') {
         if (!global.__drizzle) {
-            global.__drizzle = drizzle(client, { schema });
+            global.__drizzle = drizzle(postgresClient, { schema });
         }
         return global.__drizzle;
     }
-    return drizzle(client, { schema });
+
+    // In production, reuse existing instance
+    if (!dbInstance) {
+        dbInstance = drizzle(postgresClient, { schema });
+    }
+    return dbInstance;
 };
 
-// Export a proxy that lazily initializes the database connection
-// This prevents the connection from being created at build time
-export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
-    get(_target, prop) {
-        const actualDb = getDb();
-        const value = actualDb[prop as keyof typeof actualDb];
-        if (typeof value === 'function') {
-            return value.bind(actualDb);
-        }
-        return value;
-    },
-});
+// Create a safe proxy that handles null cases
+const createDbProxy = () => {
+    return new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+        get(_target, prop) {
+            const actualDb = getDb();
+            
+            // If db is not available, throw meaningful error
+            if (!actualDb) {
+                throw new Error(
+                    'Database connection not available. ' +
+                    'This usually happens during build time. ' +
+                    'Make sure DATABASE_URL is set in your environment variables.'
+                );
+            }
+            
+            const value = actualDb[prop as keyof typeof actualDb];
+            if (typeof value === 'function') {
+                return value.bind(actualDb);
+            }
+            return value;
+        },
+    });
+};
+
+// Export the database instance
+export const db = createDbProxy();
