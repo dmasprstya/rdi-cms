@@ -2,9 +2,9 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set');
-}
+// Use empty string as fallback during build to prevent errors
+// At runtime in Vercel, DATABASE_URL will always be available
+const DATABASE_URL = process.env.DATABASE_URL || '';
 
 // Declare global type for the cached connection
 declare global {
@@ -17,7 +17,7 @@ const getClient = () => {
     // In development, use global to preserve connection across HMR
     if (process.env.NODE_ENV === 'development') {
         if (!global.__db) {
-            global.__db = postgres(process.env.DATABASE_URL!, {
+            global.__db = postgres(DATABASE_URL, {
                 max: 10, // Maximum 10 connections in the pool
                 idle_timeout: 20, // Close idle connections after 20 seconds
                 connect_timeout: 10, // Timeout after 10 seconds if connection fails
@@ -27,7 +27,7 @@ const getClient = () => {
     }
 
     // In production, create a new pool (Next.js will manage this across serverless instances)
-    return postgres(process.env.DATABASE_URL!, {
+    return postgres(DATABASE_URL, {
         max: 10,
         idle_timeout: 20,
         connect_timeout: 10,
