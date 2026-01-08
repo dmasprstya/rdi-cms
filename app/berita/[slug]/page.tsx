@@ -7,6 +7,10 @@ import { Clock, User, Eye, ArrowLeft, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { NavbarRDI } from '@/components/rdi/navbar-rdi';
 
+// Force dynamic rendering to prevent build-time fetch issues
+export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Revalidate every minute
+
 interface NewsImage {
     id: string;
     imageUrl: string;
@@ -33,20 +37,28 @@ interface NewsDetail {
 }
 
 async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
-    const res = await fetch(
-        `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/news/${slug}`,
-        {
-            next: { revalidate: 60 }, // Revalidate every minute
+    try {
+        // Use relative URL for internal API calls - works in all environments
+        const baseUrl = process.env.NEXT_PUBLIC_URL || (typeof window === 'undefined' ? 'http://localhost:3000' : '');
+        const res = await fetch(
+            `${baseUrl}/api/news/${slug}`,
+            {
+                cache: 'no-store', // Always fetch fresh data
+            }
+        );
+
+        if (!res.ok) {
+            if (res.status === 404) return null;
+            console.error('Failed to fetch news detail:', res.status);
+            return null;
         }
-    );
 
-    if (!res.ok) {
-        if (res.status === 404) return null;
-        throw new Error('Failed to fetch news');
+        const data = await res.json();
+        return data.success ? data.data : null;
+    } catch (error) {
+        console.error('Error fetching news detail:', error);
+        return null;
     }
-
-    const data = await res.json();
-    return data.success ? data.data : null;
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -98,7 +110,7 @@ export default async function BeritaDetailPage({ params }: { params: { slug: str
                     {/* Title */}
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 mt-6">{news.title}</h1>
 
-                     {/* Category Badge */}
+                    {/* Category Badge */}
                     {news.category && (
                         <div className="flex items-center gap-2 mb-4 mt-4">
                             <Tag className="w-4 h-4 text-primary" />

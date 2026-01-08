@@ -6,6 +6,10 @@ import { NewsCard } from './news-card';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// Force dynamic rendering to prevent build-time fetch issues
+export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Revalidate every minute
+
 interface NewsItem {
     id: string;
     title: string;
@@ -32,15 +36,23 @@ async function getNews(page: number = 1, category?: string) {
         params.append('category', category);
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/news?${params}`, {
-        next: { revalidate: 60 }, // Revalidate every minute
-    });
+    try {
+        // Use relative URL for internal API calls - works in all environments
+        const baseUrl = process.env.NEXT_PUBLIC_URL || (typeof window === 'undefined' ? 'http://localhost:3000' : '');
+        const res = await fetch(`${baseUrl}/api/news?${params}`, {
+            cache: 'no-store', // Always fetch fresh data
+        });
 
-    if (!res.ok) {
-        throw new Error('Failed to fetch news');
+        if (!res.ok) {
+            console.error('Failed to fetch news:', res.status);
+            return { success: false, data: { items: [], pagination: { totalPages: 0 } } };
+        }
+
+        return res.json();
+    } catch (error) {
+        console.error('Error fetching news:', error);
+        return { success: false, data: { items: [], pagination: { totalPages: 0 } } };
     }
-
-    return res.json();
 }
 
 
