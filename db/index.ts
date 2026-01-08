@@ -42,13 +42,40 @@ const getClient = () => {
     });
 };
 
+// Create a mock DB for build time that returns empty results
+const createMockDb = () => {
+    const mockHandler = {
+        select: () => mockHandler,
+        from: () => mockHandler,
+        where: () => mockHandler,
+        leftJoin: () => mockHandler,
+        orderBy: () => mockHandler,
+        limit: () => mockHandler,
+        insert: () => mockHandler,
+        values: () => mockHandler,
+        returning: () => Promise.resolve([]),
+        update: () => mockHandler,
+        set: () => mockHandler,
+        delete: () => mockHandler,
+        then: (resolve: any) => resolve([]),
+        query: new Proxy({}, {
+            get: () => ({
+                findFirst: () => Promise.resolve(null),
+                findMany: () => Promise.resolve([]),
+            }),
+        }),
+    };
+    return mockHandler as any;
+};
+
 // Lazy initialization - db connection is only created when first accessed
 const getDb = () => {
     const client = getClient();
-    
-    // PERBAIKAN: Return mock db saat build time
+
+    // PERBAIKAN: Return functional mock db saat build time
     if (!client) {
-        return {} as ReturnType<typeof drizzle<typeof schema>>;
+        console.warn('Using mock database for build time');
+        return createMockDb();
     }
 
     if (process.env.NODE_ENV === 'development') {

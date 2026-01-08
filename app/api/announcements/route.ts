@@ -4,7 +4,11 @@ import { announcements, users } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/auth';
 
+// Force this route to be dynamic and executed only at runtime
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+// Revalidate every request - no caching
+export const revalidate = 0;
 
 // GET - Fetch all announcements
 export async function GET() {

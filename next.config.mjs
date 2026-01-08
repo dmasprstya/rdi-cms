@@ -38,6 +38,8 @@ const nextConfig = {
             'react-hook-form',
             'date-fns'
         ],
+        // Exclude database packages from serverless bundle
+        serverComponentsExternalPackages: ['postgres', 'drizzle-orm', '@neondatabase/serverless'],
     },
 
 
