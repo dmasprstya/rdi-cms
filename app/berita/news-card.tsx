@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
@@ -23,7 +24,7 @@ interface NewsItem {
     } | null;
 }
 
-export function NewsCard({ news }: { news: NewsItem }) {
+export const NewsCard = memo(function NewsCard({ news }: { news: NewsItem }) {
     return (
         <Link href={`/berita/${news.slug}`}>
             <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow group ml-4">
@@ -78,4 +79,4 @@ export function NewsCard({ news }: { news: NewsItem }) {
             </Card>
         </Link>
     );
-}
+});

@@ -98,7 +98,7 @@ function SortableImageItem({ image, onDelete, onUpdateAlt }: {
 
             {/* Alt Text Input */}
             <div className="flex-1">
-                <Label htmlFor={`alt-${image.id}`} className="text-sm">Alt Text</Label>
+                <Label htmlFor={`alt-${image.id}`} className="text-xs sm:text-sm">Alt Text</Label>
                 <Input
                     id={`alt-${image.id}`}
                     value={image.altText}
@@ -497,8 +497,8 @@ export default function RDIHeroEditor() {
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold">Edit Hero Section</h1>
-                        <p className="text-muted-foreground">Kelola konten dan slideshow hero section</p>
+                        <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold">Edit Hero Section</h1>
+                        <p className="text-sm sm:text-base text-muted-foreground">Kelola konten dan slideshow hero section</p>
                     </div>
                 </div>
 
@@ -648,8 +648,8 @@ export default function RDIHeroEditor() {
                                             ) : (
                                                 <>
                                                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                                                    <p className="text-sm font-medium">Click to upload video</p>
-                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                    <p className="text-xs sm:text-sm font-medium">Click to upload video</p>
+                                                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                                                         MP4 • Max 50MB
                                                     </p>
                                                 </>
@@ -702,7 +702,7 @@ export default function RDIHeroEditor() {
                                             slideshowDuration: parseInt(e.target.value) * 1000
                                         })}
                                     />
-                                    <p className="text-xs text-muted-foreground mt-1">
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                                         Waktu tampilan per foto (3-10 detik)
                                     </p>
                                 </div>
@@ -727,8 +727,8 @@ export default function RDIHeroEditor() {
                                             ) : (
                                                 <>
                                                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                                                    <p className="text-sm font-medium">Click to upload image</p>
-                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                    <p className="text-xs sm:text-sm font-medium">Click to upload image</p>
+                                                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                                                         JPG, PNG, WebP • Max 5MB • Min 1920x1080px
                                                     </p>
                                                 </>
@@ -775,7 +775,7 @@ export default function RDIHeroEditor() {
                                 )}
 
                                 {images.length === 0 && (
-                                    <p className="text-sm text-muted-foreground text-center py-4">
+                                    <p className="text-xs sm:text-sm text-muted-foreground text-center py-4">
                                         Belum ada gambar. Upload minimal 1 gambar untuk slideshow.
                                     </p>
                                 )}

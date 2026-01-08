@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -49,12 +49,13 @@ export function ThemeProvider({
         localStorage.setItem(storageKey, theme);
     }, [theme, storageKey]);
 
-    const value = {
+    // Memoize the context value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
         theme,
         setTheme: (newTheme: Theme) => {
             setTheme(newTheme);
         },
-    };
+    }), [theme]);
 
     return (
         <ThemeProviderContext.Provider {...props} value={value}>

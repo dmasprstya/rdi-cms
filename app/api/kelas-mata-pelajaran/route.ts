@@ -59,6 +59,33 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Validate foreign keys
+        const [classData] = await db
+            .select()
+            .from(classes)
+            .where(eq(classes.id, classId))
+            .limit(1);
+
+        if (!classData) {
+            return NextResponse.json(
+                { error: 'Class not found' },
+                { status: 400 }
+            );
+        }
+
+        const [subject] = await db
+            .select()
+            .from(subjects)
+            .where(eq(subjects.id, subjectId))
+            .limit(1);
+
+        if (!subject) {
+            return NextResponse.json(
+                { error: 'Subject not found' },
+                { status: 400 }
+            );
+        }
+
         // Check if assignment already exists
         const [existing] = await db
             .select()

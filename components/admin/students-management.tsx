@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -297,20 +297,25 @@ export function StudentsManagement() {
         }
     };
 
-    // Filter students based on search and class filter
-    const filteredStudents = students.filter(student => {
-        const matchesSearch =
-            student.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.nis.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.userEmail.toLowerCase().includes(searchQuery.toLowerCase());
+    // Filter students based on search and class filter - Memoized for performance
+    const filteredStudents = useMemo(() => {
+        return students.filter(student => {
+            const matchesSearch =
+                student.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                student.nis.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                student.userEmail.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesClass = filterClass === '' || filterClass === 'all' || student.classId === filterClass;
+            const matchesClass = filterClass === '' || filterClass === 'all' || student.classId === filterClass;
 
-        return matchesSearch && matchesClass;
-    });
+            return matchesSearch && matchesClass;
+        });
+    }, [students, searchQuery, filterClass]);
 
-    // Get unique classes from students for filter dropdown
-    const uniqueClasses = Array.from(new Set(students.map(s => s.classId).filter(Boolean)));
+    // Get unique classes from students for filter dropdown - Memoized
+    const uniqueClasses = useMemo(
+        () => Array.from(new Set(students.map(s => s.classId).filter(Boolean))),
+        [students]
+    );
 
     return (
         <div className="space-y-6">

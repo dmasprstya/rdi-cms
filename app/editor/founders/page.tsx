@@ -225,7 +225,7 @@ export default function RDIFoundersEditor() {
                         <ArrowLeft className="w-4 h-4" />
                         Kembali ke Dashboard
                     </Link>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Edit Founders Section</h1>
+                    <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-foreground">Edit Founders Section</h1>
                     <p className="mt-1 text-muted-foreground">
                         Kelola informasi para pendiri Rosman Djohan Institute
                     </p>

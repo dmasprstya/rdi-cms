@@ -111,6 +111,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Validate subject exists
+        const [subject] = await db
+            .select()
+            .from(subjects)
+            .where(eq(subjects.id, subjectId))
+            .limit(1);
+
+        if (!subject) {
+            return NextResponse.json(
+                { error: 'Mata pelajaran tidak ditemukan' },
+                { status: 400 }
+            );
+        }
+
         // Get student's class ID
         const student = await db
             .select({ classId: students.classId })

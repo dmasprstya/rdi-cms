@@ -9,9 +9,10 @@ import { db } from '@/db';
 import { news } from '@/db/schema';
 import { eq, desc, and, isNotNull } from 'drizzle-orm';
 
-// Force dynamic rendering to prevent build-time database calls
-export const dynamic = 'force-dynamic';
-export const revalidate = 0; // Don't cache at all
+
+// Use ISR (Incremental Static Regeneration) instead of force-dynamic for better performance
+// Pages are pre-generated and revalidated every 60 seconds
+export const revalidate = 60; // Revalidate every 60 seconds
 
 interface NewsItem {
     id: string;

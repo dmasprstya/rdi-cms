@@ -10,9 +10,8 @@ import { db } from '@/db';
 import { news } from '@/db/schema';
 import { eq, and, isNotNull, sql } from 'drizzle-orm';
 
-// Force dynamic rendering to prevent build-time issues
-export const dynamic = 'force-dynamic';
-export const revalidate = 60; // Revalidate every minute
+// Use ISR (Incremental Static Regeneration) for better performance
+export const revalidate = 60; // Revalidate every 60 seconds
 
 interface NewsImage {
     id: string;

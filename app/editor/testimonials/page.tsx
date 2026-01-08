@@ -147,13 +147,13 @@ export default function TestimonialsEditorPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Edit Testimonial</h1>
-                    <p className="mt-1 text-muted-foreground">Kelola testimoni pengguna sistem</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-foreground">Edit Testimonial</h1>
+                    <p className="mt-1 text-sm sm:text-base text-muted-foreground">Kelola testimoni pengguna sistem</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleReset}
-                        className="px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                     >
                         <RotateCcw className="w-4 h-4" />
                         Reset
@@ -161,7 +161,7 @@ export default function TestimonialsEditorPage() {
                     <button
                         onClick={() => handleSave(false)}
                         disabled={isSaving}
-                        className="px-4 py-2 bg-card hover:bg-muted border border-border text-foreground rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                        className="px-4 py-2 bg-card hover:bg-muted border border-border text-foreground rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                         <Save className="w-4 h-4" />
                         Draft
@@ -169,7 +169,7 @@ export default function TestimonialsEditorPage() {
                     <button
                         onClick={() => handleSave(true)}
                         disabled={isSaving}
-                        className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-black rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                        className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-black rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                         <Eye className="w-4 h-4" />
                         {isSaving ? 'Menyimpan...' : 'Publikasikan'}
@@ -182,7 +182,7 @@ export default function TestimonialsEditorPage() {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Header Section</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">Judul Section</label>
+                        <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-2">Judul Section</label>
                         <input
                             type="text"
                             value={content.sectionTitle}
@@ -191,7 +191,7 @@ export default function TestimonialsEditorPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">Sub-Judul</label>
+                        <label className="block text-xs sm:text-sm font-medium text-muted-foreground mb-2">Sub-Judul</label>
                         <input
                             type="text"
                             value={content.sectionSubtitle}
@@ -208,7 +208,7 @@ export default function TestimonialsEditorPage() {
                     <h2 className="text-lg font-semibold text-foreground">Daftar Testimoni ({content.testimonials.length})</h2>
                     <button
                         onClick={addTestimonial}
-                        className="px-3 py-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        className="px-3 py-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
                         Tambah Testimoni

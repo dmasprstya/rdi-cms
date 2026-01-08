@@ -370,7 +370,7 @@ export default function ProgramsEditor() {
                         <ArrowLeft className="w-4 h-4" />
                         Kembali ke Dashboard
                     </Link>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Edit Programs Section</h1>
+                    <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-foreground">Edit Programs Section</h1>
                     <p className="mt-1 text-muted-foreground">
                         Kelola kategori dan item program RDI
                     </p>

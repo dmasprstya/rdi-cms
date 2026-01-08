@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,8 @@ interface HeroSectionProps {
     newsItems: NewsItem[];
 }
 
-// News Card Component
-function NewsCard({ news }: { news: NewsItem }) {
+// News Card Component - Memoized to prevent unnecessary re-renders
+const NewsCard = memo(function NewsCard({ news }: { news: NewsItem }) {
     return (
         <Link href={`/berita/${news.slug}`}>
             <Card className="group overflow-hidden card-hover cursor-pointer h-full">
@@ -69,7 +69,8 @@ function NewsCard({ news }: { news: NewsItem }) {
             </Card>
         </Link>
     );
-}
+});
+NewsCard.displayName = 'NewsCard';
 
 // Main component with all hooks at top level
 export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
@@ -99,8 +100,11 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
         setValidImages(images);
     }, [images]);
 
-    // Disable auto-play if user prefers reduced motion
-    const shouldAutoPlay = !prefersReducedMotion && (content.enableAutoPlay !== false) && isPlaying;
+    // Disable auto-play if user prefers reduced motion - Memoized
+    const shouldAutoPlay = useMemo(
+        () => !prefersReducedMotion && (content.enableAutoPlay !== false) && isPlaying,
+        [prefersReducedMotion, content.enableAutoPlay, isPlaying]
+    );
 
     // Auto-advance slideshow
     useEffect(() => {
@@ -281,13 +285,13 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
 // Video background layout
 function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: HeroContent; scrollToPrograms: () => void; newsItems: NewsItem[] }) {
     return (
-        <section className="relative">
+        <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Video & Hero Content */}
-                        <div className="relative min-h-[400px] sm:min-h-[500px] lg:min-h-[550px] flex items-end lg:mt-8">
+                        <div className="relative flex-1 min-h-[400px] sm:min-h-[500px] lg:min-h-[550px] flex items-end lg:mt-8">
                             {/* Video Background */}
                             <div className="absolute inset-0 z-0">
                                 <video
@@ -318,7 +322,7 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
                                         </div>
                                     )}
 
-                                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight">
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
                                         {content.title}
                                     </h1>
 
@@ -371,7 +375,7 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
 // Static image layout
 function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { content: HeroContent; image: HeroImage; scrollToPrograms: () => void; newsItems: NewsItem[] }) {
     return (
-        <section className="relative">
+        <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
                     {/* Left Column - Two separate sections stacked */}
@@ -464,7 +468,7 @@ function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { con
 // Fallback component for no images
 function DefaultHeroLayout({ content, scrollToPrograms, newsItems }: { content: HeroContent; scrollToPrograms: () => void; newsItems: NewsItem[] }) {
     return (
-        <section className="relative">
+        <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
                     {/* Left Column - Two separate sections stacked */}

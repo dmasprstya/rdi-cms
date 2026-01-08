@@ -75,6 +75,48 @@ export async function POST(request: Request) {
             );
         }
 
+        // Validate foreign keys exist
+        const [subject] = await db
+            .select()
+            .from(subjects)
+            .where(eq(subjects.id, subjectId))
+            .limit(1);
+
+        if (!subject) {
+            return NextResponse.json(
+                { error: 'Invalid subject ID' },
+                { status: 400 }
+            );
+        }
+
+        const [teacher] = await db
+            .select()
+            .from(teachers)
+            .where(eq(teachers.id, teacherId))
+            .limit(1);
+
+        if (!teacher) {
+            return NextResponse.json(
+                { error: 'Invalid teacher ID' },
+                { status: 400 }
+            );
+        }
+
+        if (classId) {
+            const [classData] = await db
+                .select()
+                .from(classes)
+                .where(eq(classes.id, classId))
+                .limit(1);
+
+            if (!classData) {
+                return NextResponse.json(
+                    { error: 'Invalid class ID' },
+                    { status: 400 }
+                );
+            }
+        }
+
         const [newModule] = await db
             .insert(modules)
             .values({

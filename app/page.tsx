@@ -18,8 +18,9 @@ import {
     CTAContent,
 } from "@/lib/rdi-data";
 
-// Revalidate this page on demand (when CMS content is updated)
-export const revalidate = 0;
+
+// Use ISR (Incremental Static Regeneration) - homepage cached for 5 minutes
+export const revalidate = 300; // 5 minutes
 
 export default async function RDILandingPage() {
     // Fetch section data server-side

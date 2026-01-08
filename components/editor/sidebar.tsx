@@ -103,18 +103,6 @@ export function EditorSidebar({ user }: EditorSidebarProps) {
 
     return (
         <>
-            {/* Mobile Menu Button */}
-            <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-card border border-border rounded-xl shadow-lg"
-            >
-                {mobileMenuOpen ? (
-                    <X className="w-6 h-6 text-foreground" />
-                ) : (
-                    <MenuIcon className="w-6 h-6 text-foreground" />
-                )}
-            </button>
-
             {/* Mobile Sidebar Overlay */}
             {mobileMenuOpen && (
                 <div
@@ -162,8 +150,8 @@ export function EditorSidebar({ user }: EditorSidebarProps) {
                                             href={item.href}
                                             onClick={() => setMobileMenuOpen(false)}
                                             className={`group flex items-center gap-x-3 rounded-xl px-3 py-3 text-sm transition-all ${isActive
-                                                    ? 'bg-primary/10 text-primary border border-primary/20'
-                                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                                ? 'bg-primary/10 text-primary border border-primary/20'
+                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                 }`}
                                         >
                                             <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
@@ -267,7 +255,7 @@ export function EditorSidebar({ user }: EditorSidebarProps) {
             {/* Mobile Bottom Navigation */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card backdrop-blur-xl border-t border-border">
                 <nav className="flex items-center justify-around px-2 py-2">
-                    {menuItems.slice(0, 5).map((item) => {
+                    {menuItems.slice(0, 4).map((item) => {
                         const isActive = pathname === item.href;
                         return (
                             <Link
@@ -283,6 +271,14 @@ export function EditorSidebar({ user }: EditorSidebarProps) {
                             </Link>
                         );
                     })}
+                    {/* Menu Button */}
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all text-muted-foreground hover:text-foreground"
+                    >
+                        <MenuIcon className="w-5 h-5" />
+                        <span className="text-[10px] font-medium">Menu</span>
+                    </button>
                 </nav>
             </div>
         </>
