@@ -330,6 +330,11 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
  * Cached with revalidation tags for efficient performance
  */
 export async function fetchProgramsContent(): Promise<ProgramsContent | null> {
+    // Skip during build when DATABASE_URL is not available
+    if (!process.env.DATABASE_URL) {
+        return null;
+    }
+
     return unstable_cache(
         async () => {
             try {
@@ -350,7 +355,7 @@ export async function fetchProgramsContent(): Promise<ProgramsContent | null> {
         ['rdi-section-rdi-programs'],
         {
             tags: ['rdi-section-rdi-programs', 'rdi-content'],
-            revalidate: 60 // Revalidate every 60 seconds
+            revalidate: 60
         }
     )();
 }

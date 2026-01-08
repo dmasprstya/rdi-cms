@@ -261,6 +261,11 @@ const DEFAULT_NAVBAR: NavbarContent = {
  * @returns Section data or null if not found
  */
 export async function fetchRDISection<T>(section: string): Promise<T | null> {
+    // Skip during build when DATABASE_URL is not available
+    if (!process.env.DATABASE_URL) {
+        return null;
+    }
+
     return unstable_cache(
         async () => {
             try {
@@ -305,6 +310,11 @@ export async function getHeroContent(): Promise<HeroContent> {
 }
 
 export async function getHeroImages(): Promise<HeroImage[]> {
+    // Skip during build
+    if (!process.env.DATABASE_URL) {
+        return [];
+    }
+
     return unstable_cache(
         async () => {
             try {
@@ -314,7 +324,7 @@ export async function getHeroImages(): Promise<HeroImage[]> {
                 const images = await db.query.heroImages.findMany({
                     where: eq(heroImages.sectionId, 'rdi-hero'),
                     orderBy: [asc(heroImages.order)],
-                    limit: 5 // Max 5 images
+                    limit: 5
                 });
 
                 return images.map(img => ({
@@ -357,13 +367,22 @@ export async function getNavbarContent(): Promise<NavbarContent> {
  * @returns LatestNewsContent with real news from database
  */
 export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {
+    // Skip during build
+    if (!process.env.DATABASE_URL) {
+        return {
+            title: 'Update Kegiatan Terbaru',
+            subtitle: 'Ikuti perkembangan dan pencapaian terbaru kami',
+            newsItems: [],
+            viewAllText: 'Lihat Semua Berita',
+            viewAllLink: '/berita',
+        };
+    }
+
     return unstable_cache(
         async () => {
             try {
-                // Fetch section header from CMS (title, subtitle, viewAllText, viewAllLink)
                 const sectionHeader = await fetchRDISection<Partial<LatestNewsContent>>('rdi-latest-news');
 
-                // Fetch latest 3 published news from database
                 const { news } = await import('@/db/schema');
                 const { eq, desc, and, isNotNull } = await import('drizzle-orm');
 
@@ -372,7 +391,7 @@ export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {
                         eq(news.status, 'published'),
                         isNotNull(news.publishedAt)
                     ),
-                    orderBy: [desc(news.publishedAt)], // Newest first
+                    orderBy: [desc(news.publishedAt)],
                     limit: 3,
                     columns: {
                         id: true,
@@ -385,17 +404,15 @@ export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {
                     },
                 });
 
-                // Map database news to NewsItem format
                 const mappedNews: NewsItem[] = newsItems.map(item => ({
                     title: item.title,
                     excerpt: item.excerpt,
-                    category: item.category || 'Seminar', // Default category if null
+                    category: item.category || 'Seminar',
                     date: item.publishedAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
                     image: item.featuredImage,
                     slug: item.slug,
                 }));
 
-                // Return combined data with fallback for header fields
                 return {
                     title: sectionHeader?.title || 'Update Kegiatan Terbaru',
                     subtitle: sectionHeader?.subtitle || 'Ikuti perkembangan dan pencapaian terbaru kami',
@@ -406,7 +423,6 @@ export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {
             } catch (error) {
                 console.error('Error fetching latest news for landing:', error);
 
-                // Return default fallback
                 return {
                     title: 'Update Kegiatan Terbaru',
                     subtitle: 'Ikuti perkembangan dan pencapaian terbaru kami',
@@ -419,7 +435,7 @@ export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {
         ['landing-latest-news'],
         {
             tags: ['landing-latest-news', 'news-content'],
-            revalidate: false // Disable caching, rely on page-level revalidation
+            revalidate: false
         }
     )();
 }
