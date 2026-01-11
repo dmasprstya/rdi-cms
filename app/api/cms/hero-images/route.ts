@@ -12,8 +12,6 @@ import { rateLimit } from '@/lib/rate-limit';
 // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MIN_WIDTH = 1920;
-const MIN_HEIGHT = 1080;
 
 // Rate limiter: 10 uploads per minute
 const limiter = rateLimit({
@@ -114,16 +112,8 @@ export async function POST(request: NextRequest) {
         // Convert to buffer
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        // Get image metadata untuk dimension check
+        // Get image metadata
         const metadata = await sharp(buffer).metadata();
-
-        if (!metadata.width || !metadata.height ||
-            metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
-            return NextResponse.json(
-                { error: `Image too small. Minimum ${MIN_WIDTH}x${MIN_HEIGHT}px required.` },
-                { status: 400 }
-            );
-        }
 
         // Check current image count (max 5)
         const currentImages = await db.query.heroImages.findMany({

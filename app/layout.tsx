@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastProvider } from "@/components/toast-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +28,19 @@ export const viewport = {
   maximumScale: 5,
 };
 
+// Preload critical resources
+export const preloadResources = () => {
+  return [
+    <link
+      key="preload-navbar-logo"
+      rel="preload"
+      href="/logos/rdi-logo.png"
+      as="image"
+      type="image/png"
+    />,
+  ];
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -35,6 +48,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" suppressHydrationWarning>
+      <head>
+        {preloadResources()}
+      </head>
       <body className={inter.className}>
         <ThemeProvider defaultTheme="light" storageKey="sts-ui-theme">
           <Suspense fallback={<div>Loading...</div>}>

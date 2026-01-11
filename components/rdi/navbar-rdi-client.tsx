@@ -49,6 +49,8 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
                                     alt={content.logoText}
                                     fill
                                     className="object-contain"
+                                    priority
+                                    sizes="40px"
                                 />
                             </div>
                         ) : (

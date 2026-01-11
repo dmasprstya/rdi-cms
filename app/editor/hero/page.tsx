@@ -729,7 +729,7 @@ export default function RDIHeroEditor() {
                                                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                                                     <p className="text-xs sm:text-sm font-medium">Click to upload image</p>
                                                     <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                                                        JPG, PNG, WebP • Max 5MB • Min 1920x1080px
+                                                        JPG, PNG, WebP • Max 5MB
                                                     </p>
                                                 </>
                                             )}

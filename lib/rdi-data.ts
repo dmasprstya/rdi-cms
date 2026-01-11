@@ -358,7 +358,22 @@ export async function getCorePillarsContent(): Promise<CorePillarsContent> {
 }
 
 export async function getNavbarContent(): Promise<NavbarContent> {
-    return getRDIContent('rdi-navbar', DEFAULT_NAVBAR);
+    // Skip during build
+    if (!process.env.DATABASE_URL) {
+        return DEFAULT_NAVBAR;
+    }
+
+    return unstable_cache(
+        async () => {
+            const content = await fetchRDISection<NavbarContent>('rdi-navbar');
+            return content || DEFAULT_NAVBAR;
+        },
+        ['navbar-content'],
+        {
+            tags: ['navbar-content', 'rdi-content'],
+            revalidate: 3600 // Cache for 1 hour - navbar content rarely changes
+        }
+    )();
 }
 
 /**
