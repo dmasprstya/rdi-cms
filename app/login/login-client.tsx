@@ -25,11 +25,24 @@ export function LoginClient({ logoUrl, logoTextColor }: LoginClientProps) {
     const router = useRouter();
     const { toast } = useToast();
 
+    // Helper function to map role to route
+    const getRoleBasedRoute = (role: string): string => {
+        const roleRoutes: Record<string, string> = {
+            student: '/student',
+            editor: '/editor',
+            guru: '/guru',
+            staff: '/staff',
+            admin: '/dashboard',
+        };
+        return roleRoutes[role] || '/dashboard';
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
+            // Step 1: Authenticate user
             const result = await signIn('credentials', {
                 email,
                 password,
@@ -42,21 +55,54 @@ export function LoginClient({ logoUrl, logoTextColor }: LoginClientProps) {
                     description: 'Email atau password salah',
                     variant: 'destructive',
                 });
-            } else {
-                toast({
-                    title: 'Login Berhasil',
-                    description: 'Selamat datang!',
+                setIsLoading(false);
+                return;
+            }
+
+            // Step 2: Fetch session explicitly to get user role
+            toast({
+                title: 'Login Berhasil',
+                description: 'Mengarahkan...',
+            });
+
+            try {
+                const sessionResponse = await fetch('/api/auth/session', {
+                    cache: 'no-store',
                 });
+
+                if (!sessionResponse.ok) {
+                    throw new Error('Failed to fetch session');
+                }
+
+                const session = await sessionResponse.json();
+                const userRole = session?.user?.role;
+
+                if (!userRole) {
+                    console.warn('No role found in session, redirecting to default dashboard');
+                }
+
+                // Step 3: Redirect based on role
+                const targetRoute = getRoleBasedRoute(userRole || 'admin');
+                router.push(targetRoute);
+                router.refresh();
+            } catch (sessionError) {
+                console.error('Error fetching session:', sessionError);
+                toast({
+                    title: 'Peringatan',
+                    description: 'Berhasil login, mengarahkan ke halaman default...',
+                    variant: 'default',
+                });
+                // Fallback to dashboard if session fetch fails
                 router.push('/dashboard');
                 router.refresh();
             }
         } catch (error) {
+            console.error('Login error:', error);
             toast({
                 title: 'Error',
                 description: 'Terjadi kesalahan saat login',
                 variant: 'destructive',
             });
-        } finally {
             setIsLoading(false);
         }
     };
@@ -149,12 +195,6 @@ export function LoginClient({ logoUrl, logoTextColor }: LoginClientProps) {
                             >
                                 {isLoading ? 'Memproses...' : 'Masuk'}
                             </Button>
-
-                            <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-                                <p className="text-xs text-muted-foreground text-center mb-2">Demo Akun:</p>
-                                <p className="text-xs text-foreground">Admin: admin@sekolah.com / admin123</p>
-                                <p className="text-xs text-foreground">Siswa: siswa@sekolah.com / siswa123</p>
-                            </div>
                         </form>
                     </CardContent>
                 </Card>

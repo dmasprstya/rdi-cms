@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -43,7 +43,11 @@ interface GradeData {
     remarks: string;
 }
 
-export function GradeInputManagement() {
+interface GradeInputProps {
+    rolePrefix?: 'guru' | 'staff';
+}
+
+export default function GradeInput({ rolePrefix = 'guru' }: GradeInputProps = {}) {
     const [step, setStep] = useState(1);
     const [classes, setClasses] = useState<Class[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -58,14 +62,10 @@ export function GradeInputManagement() {
     const [academicYear, setAcademicYear] = useState(new Date().getFullYear() + '/' + (new Date().getFullYear() + 1));
     const [gradesInput, setGradesInput] = useState<Record<string, GradeData>>({});
 
-    useEffect(() => {
-        fetchClasses();
-    }, []);
-
-    const fetchClasses = async () => {
+    const fetchClasses = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/guru/classes');
+            const response = await fetch(`/api/${rolePrefix}/classes`);
             if (!response.ok) throw new Error('Failed to fetch classes');
             const data = await response.json();
             setClasses(data);
@@ -75,12 +75,16 @@ export function GradeInputManagement() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [rolePrefix]);
+
+    useEffect(() => {
+        fetchClasses();
+    }, [fetchClasses]);
 
     const fetchSubjects = async (classId: string) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/guru/classes/${classId}/subjects`);
+            const response = await fetch(`/api/${rolePrefix}/classes/${classId}/subjects`);
             if (!response.ok) throw new Error('Failed to fetch subjects');
             const data = await response.json();
             setSubjects(data);
@@ -95,17 +99,17 @@ export function GradeInputManagement() {
     const fetchStudents = async (classId: string) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/guru/classes/${classId}/students`);
+            const response = await fetch(`/api/${rolePrefix}/classes/${classId}/students`);
             if (!response.ok) throw new Error('Failed to fetch students');
             const data = await response.json();
             setStudents(data);
 
-            // Initialize grades input
+            // Initialize grades input with empty scores for easier input
             const initialGrades: Record<string, GradeData> = {};
             data.forEach((student: Student) => {
                 initialGrades[student.id] = {
                     studentId: student.id,
-                    score: 0,
+                    score: 0, // Keep as 0 in state but display as empty in input
                     remarks: '',
                 };
             });
@@ -120,7 +124,7 @@ export function GradeInputManagement() {
 
     const fetchExistingGrades = async () => {
         try {
-            const response = await fetch(`/api/guru/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}`);
+            const response = await fetch(`/api/${rolePrefix}/grades?classId=${selectedClassId}&subjectId=${selectedSubjectId}`);
             if (!response.ok) return;
 
             const existingGrades = await response.json();
@@ -166,8 +170,23 @@ export function GradeInputManagement() {
     };
 
     const handleScoreChange = (studentId: string, score: string) => {
-        const numScore = parseInt(score) || 0;
-        if (numScore < 0 || numScore > 100) {
+        // Allow empty string for better UX (converts to 0 when saving)
+        if (score === '') {
+            setGradesInput(prev => ({
+                ...prev,
+                [studentId]: {
+                    studentId,
+                    score: 0,
+                    remarks: prev[studentId]?.remarks || '',
+                }
+            }));
+            return;
+        }
+
+        const numScore = parseInt(score);
+
+        // Validate the score
+        if (isNaN(numScore) || numScore < 0 || numScore > 100) {
             toast.error('Nilai harus antara 0-100');
             return;
         }
@@ -175,8 +194,9 @@ export function GradeInputManagement() {
         setGradesInput(prev => ({
             ...prev,
             [studentId]: {
-                ...prev[studentId],
+                studentId,  // Explicitly preserve studentId
                 score: numScore,
+                remarks: prev[studentId]?.remarks || '',
             }
         }));
     };
@@ -185,7 +205,8 @@ export function GradeInputManagement() {
         setGradesInput(prev => ({
             ...prev,
             [studentId]: {
-                ...prev[studentId],
+                studentId,  // Explicitly preserve studentId
+                score: prev[studentId]?.score || 0,
                 remarks,
             }
         }));
@@ -197,7 +218,18 @@ export function GradeInputManagement() {
 
             const gradesData = Object.values(gradesInput);
 
-            const response = await fetch('/api/guru/grades', {
+            // DEBUG: Log what we're sending
+            console.log('=== SAVING GRADES ===');
+            console.log('Request data:', {
+                classId: selectedClassId,
+                subjectId: selectedSubjectId,
+                semester: parseInt(semester),
+                academicYear,
+                gradesCount: gradesData.length,
+                gradesData
+            });
+
+            const response = await fetch(`/api/${rolePrefix}/grades`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -209,9 +241,29 @@ export function GradeInputManagement() {
                 }),
             });
 
-            if (!response.ok) throw new Error('Failed to save grades');
-
             const result = await response.json();
+            console.log('API Response:', { status: response.status, result });
+
+            if (!response.ok) {
+                const errorMsg = result.error || 'Failed to save grades';
+                console.error('API Error:', errorMsg);
+
+                if (result.errors && result.errors.length > 0) {
+                    console.error('Detailed errors:', result.errors);
+                    toast.error(`${errorMsg} - ${result.errors.length} error(s). Check console.`);
+                } else {
+                    toast.error(errorMsg);
+                }
+
+                throw new Error(errorMsg);
+            }
+
+            // Show warnings if any grades were skipped
+            if (result.skipped && result.skipped.length > 0) {
+                console.warn('Skipped grades:', result.skipped);
+                toast.warning(`${result.skipped.length} nilai di-skip. Check console for details.`);
+            }
+
             toast.success(`Berhasil menyimpan ${result.count} nilai`);
 
             // Reset
@@ -219,9 +271,11 @@ export function GradeInputManagement() {
             setSelectedClassId('');
             setSelectedSubjectId('');
             setGradesInput({});
-        } catch (error) {
-            toast.error('Gagal menyimpan nilai');
-            console.error(error);
+        } catch (error: any) {
+            console.error('Grade save error:', error);
+            if (!error.message?.includes('Failed to save grades')) {
+                toast.error('Gagal menyimpan nilai');
+            }
         } finally {
             setSaving(false);
         }
@@ -382,10 +436,11 @@ export function GradeInputManagement() {
                                             <Label htmlFor={`score-${student.id}`}>Nilai (0-100)</Label>
                                             <Input
                                                 id={`score-${student.id}`}
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                value={gradesInput[student.id]?.score || 0}
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                placeholder="0-100"
+                                                value={gradesInput[student.id]?.score === 0 ? '' : gradesInput[student.id]?.score}
                                                 onChange={(e) => handleScoreChange(student.id, e.target.value)}
                                             />
                                         </div>
@@ -428,8 +483,8 @@ function StepIndicator({ number, label, active, completed }: { number: number; l
     return (
         <div className="flex flex-col items-center gap-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${completed ? 'bg-green-500 text-white' :
-                    active ? 'bg-purple-500 text-white' :
-                        'bg-muted text-muted-foreground'
+                active ? 'bg-purple-500 text-white' :
+                    'bg-muted text-muted-foreground'
                 }`}>
                 {completed ? '✓' : number}
             </div>

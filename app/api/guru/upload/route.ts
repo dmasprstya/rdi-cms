@@ -1,0 +1,140 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { writeFile } from 'fs/promises';
+import {
+    generateUniqueFilename,
+    ensureDirectoryExists,
+    validatePDFBuffer,
+    getFilePathFromId,
+} from '@/lib/file-utils';
+import path from 'path';
+
+// Rate limiting storage (in-memory)
+// For production with multiple instances, use Redis
+const uploadLimits = new Map<string, { count: number; resetAt: Date }>();
+
+function checkRateLimit(userId: string): boolean {
+    const now = new Date();
+    const limit = uploadLimits.get(userId);
+
+    if (!limit || now > limit.resetAt) {
+        // Reset or create new limit
+        uploadLimits.set(userId, {
+            count: 1,
+            resetAt: new Date(now.getTime() + 60 * 60 * 1000), // 1 hour
+        });
+        return true;
+    }
+
+    if (limit.count >= 10) {
+        return false; // Rate limit exceeded
+    }
+
+    limit.count++;
+    return true;
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        // 1. Authentication check
+        const session = await auth();
+        if (!session || session.user.role !== 'guru') {
+            return NextResponse.json(
+                { error: 'Unauthorized', code: 'UNAUTHORIZED' },
+                { status: 401 }
+            );
+        }
+
+        // 2. Rate limiting check
+        if (!checkRateLimit(session.user.id)) {
+            return NextResponse.json(
+                {
+                    error: 'Terlalu banyak upload. Maksimal 10 file per jam.',
+                    code: 'RATE_LIMIT_EXCEEDED',
+                },
+                { status: 429 }
+            );
+        }
+
+        // 3. Get file from form data
+        const formData = await req.formData();
+        const file = formData.get('file') as File;
+
+        if (!file) {
+            return NextResponse.json(
+                { error: 'File tidak ditemukan', code: 'NO_FILE' },
+                { status: 400 }
+            );
+        }
+
+        // 4. Validate file type (extension)
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            return NextResponse.json(
+                { error: 'Hanya file PDF yang diperbolehkan', code: 'INVALID_TYPE' },
+                { status: 400 }
+            );
+        }
+
+        // 5. Validate file size (10MB max)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            return NextResponse.json(
+                { error: 'File terlalu besar (maksimal 10MB)', code: 'FILE_TOO_LARGE' },
+                { status: 413 }
+            );
+        }
+
+        // 6. Validate MIME type
+        if (file.type !== 'application/pdf') {
+            return NextResponse.json(
+                { error: 'Tipe file tidak valid', code: 'INVALID_TYPE' },
+                { status: 400 }
+            );
+        }
+
+        // 7. Validate PDF file signature (magic bytes)
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        const isPDF = await validatePDFBuffer(buffer);
+        if (!isPDF) {
+            return NextResponse.json(
+                {
+                    error: 'File bukan PDF yang valid',
+                    code: 'INVALID_TYPE',
+                },
+                { status: 400 }
+            );
+        }
+
+        // 8. Generate unique filename
+        const uniqueFilename = generateUniqueFilename(file.name, session.user.id);
+
+        // 9. Ensure upload directory exists
+        const uploadDir = path.join(process.cwd(), 'uploads', 'modules');
+        await ensureDirectoryExists(uploadDir);
+
+        // 10. Save file
+        const filePath = path.join(uploadDir, uniqueFilename);
+        await writeFile(filePath, buffer);
+
+        console.log(`✓ File uploaded: ${uniqueFilename} (${file.size} bytes)`);
+
+        // 11. Return file metadata
+        return NextResponse.json(
+            {
+                fileUrl: `/api/guru/files/${uniqueFilename}`,
+                fileName: file.name,
+                fileSize: file.size,
+                message: 'File berhasil diupload',
+            },
+            { status: 201 }
+        );
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        return NextResponse.json(
+            { error: 'Gagal mengupload file', code: 'UPLOAD_FAILED' },
+            { status: 500 }
+        );
+    }
+}

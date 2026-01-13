@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -52,7 +53,65 @@ interface AnnouncementFormData {
     isActive: boolean;
 }
 
-export function AnnouncementsManagement() {
+interface AnnouncementsProps {
+    rolePrefix?: 'guru' | 'staff';
+}
+
+// Move form fields component outside to prevent re-creation on every render
+interface AnnouncementFormFieldsProps {
+    formData: AnnouncementFormData;
+    setFormData: React.Dispatch<React.SetStateAction<AnnouncementFormData>>;
+}
+
+function AnnouncementFormFields({ formData, setFormData }: AnnouncementFormFieldsProps) {
+    return (
+        <div className="space-y-4 py-4">
+            <div className="space-y-2">
+                <Label htmlFor="title">Judul Pengumuman <span className="text-red-500">*</span></Label>
+                <Input
+                    id="title"
+                    placeholder="Contoh: Pengumuman Ujian Tengah Semester"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="content">Konten Pengumuman <span className="text-red-500">*</span></Label>
+                <Textarea
+                    id="content"
+                    placeholder="Tulis isi pengumuman di sini..."
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    rows={6}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="targetRole">Target Penerima</Label>
+                <Select value={formData.targetRole} onValueChange={(value) => setFormData({ ...formData, targetRole: value })}>
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="student">Siswa</SelectItem>
+                        <SelectItem value="all">Semua</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+                <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="w-4 h-4"
+                />
+                <Label htmlFor="isActive" className="cursor-pointer">Aktifkan pengumuman</Label>
+            </div>
+        </div>
+    );
+}
+
+export default function AnnouncementsManagement({ rolePrefix = 'guru' }: AnnouncementsProps = {}) {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAddOpen, setIsAddOpen] = useState(false);
@@ -66,13 +125,9 @@ export function AnnouncementsManagement() {
         isActive: true,
     });
 
-    useEffect(() => {
-        fetchAnnouncements();
-    }, []);
-
-    const fetchAnnouncements = async () => {
+    const fetchAnnouncements = useCallback(async () => {
         try {
-            const response = await fetch('/api/guru/announcements');
+            const response = await fetch(`/api/${rolePrefix}/announcements`);
             if (!response.ok) throw new Error('Failed to fetch announcements');
             const data = await response.json();
             setAnnouncements(data);
@@ -82,7 +137,11 @@ export function AnnouncementsManagement() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [rolePrefix]);
+
+    useEffect(() => {
+        fetchAnnouncements();
+    }, [fetchAnnouncements]);
 
     const handleAdd = async () => {
         try {
@@ -91,7 +150,7 @@ export function AnnouncementsManagement() {
                 return;
             }
 
-            const response = await fetch('/api/guru/announcements', {
+            const response = await fetch(`/api/${rolePrefix}/announcements`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -118,7 +177,7 @@ export function AnnouncementsManagement() {
                 return;
             }
 
-            const response = await fetch(`/api/guru/announcements/${selectedAnnouncement.id}`, {
+            const response = await fetch(`/api/${rolePrefix}/announcements/${selectedAnnouncement.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -141,7 +200,7 @@ export function AnnouncementsManagement() {
         if (!selectedAnnouncement) return;
 
         try {
-            const response = await fetch(`/api/guru/announcements/${selectedAnnouncement.id}`, {
+            const response = await fetch(`/api/${rolePrefix}/announcements/${selectedAnnouncement.id}`, {
                 method: 'DELETE',
             });
 
@@ -261,51 +320,7 @@ export function AnnouncementsManagement() {
         },
     ];
 
-    const AnnouncementFormFields = () => (
-        <div className="space-y-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="title">Judul Pengumuman <span className="text-red-500">*</span></Label>
-                <Input
-                    id="title"
-                    placeholder="Contoh: Pengumuman Ujian Tengah Semester"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="content">Konten Pengumuman <span className="text-red-500">*</span></Label>
-                <Textarea
-                    id="content"
-                    placeholder="Tulis isi pengumuman di sini..."
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={6}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="targetRole">Target Penerima</Label>
-                <Select value={formData.targetRole} onValueChange={(value) => setFormData({ ...formData, targetRole: value })}>
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="student">Siswa</SelectItem>
-                        <SelectItem value="all">Semua</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="w-4 h-4"
-                />
-                <Label htmlFor="isActive" className="cursor-pointer">Aktifkan pengumuman</Label>
-            </div>
-        </div>
-    );
+
 
     return (
         <div className="space-y-6">
@@ -327,8 +342,11 @@ export function AnnouncementsManagement() {
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Buat Pengumuman Baru</DialogTitle>
+                            <DialogDescription>
+                                Buat pengumuman untuk siswa Anda
+                            </DialogDescription>
                         </DialogHeader>
-                        <AnnouncementFormFields />
+                        <AnnouncementFormFields formData={formData} setFormData={setFormData} />
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsAddOpen(false)}>
                                 Batal
@@ -353,8 +371,11 @@ export function AnnouncementsManagement() {
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Edit Pengumuman</DialogTitle>
+                        <DialogDescription>
+                            Ubah informasi pengumuman yang sudah ada
+                        </DialogDescription>
                     </DialogHeader>
-                    <AnnouncementFormFields />
+                    <AnnouncementFormFields formData={formData} setFormData={setFormData} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsEditOpen(false)}>
                             Batal

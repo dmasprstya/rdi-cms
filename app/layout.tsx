@@ -28,19 +28,6 @@ export const viewport = {
   maximumScale: 5,
 };
 
-// Preload critical resources
-export const preloadResources = () => {
-  return [
-    <link
-      key="preload-navbar-logo"
-      rel="preload"
-      href="/logos/rdi-logo.png"
-      as="image"
-      type="image/png"
-    />,
-  ];
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -48,9 +35,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <head>
-        {preloadResources()}
-      </head>
+      <head></head>
       <body className={inter.className}>
         <ThemeProvider defaultTheme="light" storageKey="sts-ui-theme">
           <Suspense fallback={<div>Loading...</div>}>

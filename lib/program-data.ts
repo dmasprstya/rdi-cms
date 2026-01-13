@@ -352,10 +352,10 @@ export async function fetchProgramsContent(): Promise<ProgramsContent | null> {
                 return null;
             }
         },
-        ['rdi-section-rdi-programs'],
+        ["programs-content"],
         {
-            tags: ['rdi-section-rdi-programs', 'rdi-content'],
-            revalidate: 60
+            tags: ["programs-content", "rdi-content"],
+            revalidate: 3600 // Cache for 1 hour - program content rarely changes
         }
     )();
 }
@@ -464,7 +464,7 @@ export async function getProgramsCategoriesForLanding(): Promise<{
                 features,
                 buttonText: `Detail Program →`,
                 buttonLink,
-                imageUrl: categoryItems[0]?.featuredImage || '/images/programs/placeholder.jpg',
+                imageUrl: categoryItems[0]?.featuredImage || '/images/programs/placeholder.svg',
                 gradientFrom: category.gradientFrom,
                 gradientTo: category.gradientTo,
             };

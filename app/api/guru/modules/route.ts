@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { db } from '@/db';
 import { modules, teachers, subjects, classes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { deleteFileIfExists, extractFileIdFromUrl, getFilePathFromId } from '@/lib/file-utils';
 
 // GET /api/guru/modules - List modules created by logged-in teacher
 export async function GET(req: NextRequest) {
@@ -32,6 +33,8 @@ export async function GET(req: NextRequest) {
                 description: modules.description,
                 content: modules.content,
                 fileUrl: modules.fileUrl,
+                fileName: modules.fileName,
+                fileSize: modules.fileSize,
                 subjectId: modules.subjectId,
                 classId: modules.classId,
                 isPublished: modules.isPublished,
@@ -78,7 +81,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { title, description, content, fileUrl, subjectId, classId, isPublished } = body;
+        const { title, description, content, fileUrl, fileName, fileSize, subjectId, classId, isPublished } = body;
 
         if (!title || !subjectId) {
             return NextResponse.json(
@@ -87,19 +90,42 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Create module with auto-assigned teacherId
-        const [newModule] = await db.insert(modules).values({
-            title,
-            description: description || null,
-            content: content || null,
-            fileUrl: fileUrl || null,
-            subjectId,
-            classId: classId || null,
-            teacherId: teacher.id, // Auto-assign
-            isPublished: isPublished ?? true,
-        }).returning();
+        // Validate file metadata consistency
+        if (fileUrl && (!fileName || !fileSize)) {
+            return NextResponse.json(
+                { error: 'File metadata incomplete' },
+                { status: 400 }
+            );
+        }
 
-        return NextResponse.json(newModule, { status: 201 });
+        try {
+            // Create module with auto-assigned teacherId
+            const [newModule] = await db.insert(modules).values({
+                title,
+                description: description || null,
+                content: content || null,
+                fileUrl: fileUrl || null,
+                fileName: fileName || null,
+                fileSize: fileSize || null,
+                subjectId,
+                classId: classId || null,
+                teacherId: teacher.id, // Auto-assign
+                isPublished: isPublished ?? true,
+            }).returning();
+
+            return NextResponse.json(newModule, { status: 201 });
+        } catch (dbError) {
+            // Transaction handling: If DB insert fails, delete uploaded file
+            if (fileUrl) {
+                const fileId = extractFileIdFromUrl(fileUrl);
+                if (fileId) {
+                    const filePath = getFilePathFromId(fileId);
+                    await deleteFileIfExists(filePath);
+                    console.log('Cleaned up file after DB error:', fileId);
+                }
+            }
+            throw dbError;
+        }
     } catch (error) {
         console.error('Error creating module:', error);
         return NextResponse.json(

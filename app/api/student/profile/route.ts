@@ -34,7 +34,6 @@ export async function GET() {
                 userName: users.name,
                 userEmail: users.email,
                 className: classes.name,
-                classGrade: classes.grade,
             })
             .from(students)
             .leftJoin(users, eq(students.userId, users.id))

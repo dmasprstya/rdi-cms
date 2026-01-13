@@ -1,0 +1,3 @@
+# This directory stores uploaded PDF module files
+# Files in this directory are NOT publicly accessible
+# Access is controlled via API routes with authentication

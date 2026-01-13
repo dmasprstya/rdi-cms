@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     try {
         const session = await auth();
 
-        if (!session || (session.user.role !== 'admin' && session.user.role !== 'staff')) {
+        if (!session || !['admin', 'staff', 'guru'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
                 classId: kelasMataPelajaran.classId,
                 subjectId: kelasMataPelajaran.subjectId,
                 className: classes.name,
-                classGrade: classes.grade,
                 classAcademicYear: classes.academicYear,
                 subjectName: subjects.name,
                 subjectCode: subjects.code,
@@ -28,7 +27,7 @@ export async function GET(req: NextRequest) {
             .from(kelasMataPelajaran)
             .innerJoin(classes, eq(kelasMataPelajaran.classId, classes.id))
             .innerJoin(subjects, eq(kelasMataPelajaran.subjectId, subjects.id))
-            .orderBy(classes.grade, classes.name, subjects.name);
+            .orderBy(classes.name, subjects.name);
 
         return NextResponse.json(assignments);
     } catch (error) {
@@ -45,7 +44,7 @@ export async function POST(req: NextRequest) {
     try {
         const session = await auth();
 
-        if (!session || (session.user.role !== 'admin' && session.user.role !== 'staff')) {
+        if (!session || !['admin', 'staff', 'guru'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -125,7 +124,7 @@ export async function DELETE(req: NextRequest) {
     try {
         const session = await auth();
 
-        if (!session || (session.user.role !== 'admin' && session.user.role !== 'staff')) {
+        if (!session || !['admin', 'staff', 'guru'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

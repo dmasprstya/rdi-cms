@@ -28,6 +28,7 @@ export function FooterRDI({ content, programsContent }: FooterRDIProps) {
                                         src={content.logoUrl}
                                         alt={content.logoText}
                                         fill
+                                        sizes="32px"
                                         className="object-contain"
                                     />
                                 </div>

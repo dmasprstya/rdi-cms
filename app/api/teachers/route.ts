@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { users, teachers } from '@/db/schema';
+import { users, teachers, guruKelas } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/auth';
 import bcrypt from 'bcryptjs';
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
     try {
         const session = await auth();
-        if (!session || session.user.role !== 'admin') {
+        if (!session || !['admin', 'staff'].includes(session.user.role)) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
@@ -33,7 +33,22 @@ export async function GET() {
             .from(teachers)
             .leftJoin(users, eq(teachers.userId, users.id));
 
-        return NextResponse.json(teachersData);
+        // Fetch class IDs for each teacher
+        const teachersWithClasses = await Promise.all(
+            teachersData.map(async (teacher) => {
+                const teacherClasses = await db
+                    .select({ classId: guruKelas.classId })
+                    .from(guruKelas)
+                    .where(eq(guruKelas.teacherId, teacher.id));
+
+                return {
+                    ...teacher,
+                    classIds: teacherClasses.map(tc => tc.classId),
+                };
+            })
+        );
+
+        return NextResponse.json(teachersWithClasses);
     } catch (error) {
         console.error('Error fetching teachers:', error);
         return NextResponse.json(
@@ -62,7 +77,8 @@ export async function POST(request: NextRequest) {
             nip,
             subject,
             phone,
-            dateOfBirth
+            dateOfBirth,
+            classIds // array of class IDs
         } = body;
 
         // Validate required fields
@@ -111,7 +127,7 @@ export async function POST(request: NextRequest) {
                 name,
                 email,
                 password: hashedPassword,
-                role: 'staff',
+                role: 'guru', // Changed from 'staff' - teachers are 'guru' role
             })
             .returning();
 
@@ -127,6 +143,15 @@ export async function POST(request: NextRequest) {
             })
             .returning();
 
+        // Save teacher-class relationships if classIds provided
+        if (classIds && Array.isArray(classIds) && classIds.length > 0) {
+            const guruKelasValues = classIds.map(classId => ({
+                teacherId: newTeacher.id,
+                classId,
+            }));
+            await db.insert(guruKelas).values(guruKelasValues);
+        }
+
         return NextResponse.json({
             success: true,
             teacher: {
@@ -135,6 +160,7 @@ export async function POST(request: NextRequest) {
                 userName: newUser.name,
                 userEmail: newUser.email,
                 subject: newTeacher.subject,
+                classIds: classIds || [],
             }
         }, { status: 201 });
     } catch (error) {
@@ -162,10 +188,12 @@ export async function PUT(request: NextRequest) {
             id,
             name,
             email,
+            password, // Add password parameter
             nip,
             subject,
             phone,
-            dateOfBirth
+            dateOfBirth,
+            classIds // array of class IDs
         } = body;
 
         if (!id) {
@@ -221,15 +249,23 @@ export async function PUT(request: NextRequest) {
             }
         }
 
+        // Prepare user update data
+        const userUpdateData: any = {
+            ...(name && { name }),
+            ...(email && { email }),
+            updatedAt: new Date(),
+        };
+
+        // Hash password if provided
+        if (password) {
+            userUpdateData.password = await bcrypt.hash(password, 10);
+        }
+
         // Update user info
-        if (name || email) {
+        if (name || email || password) {
             await db
                 .update(users)
-                .set({
-                    ...(name && { name }),
-                    ...(email && { email }),
-                    updatedAt: new Date(),
-                })
+                .set(userUpdateData)
                 .where(eq(users.id, existingTeacher[0].userId));
         }
 
@@ -243,6 +279,19 @@ export async function PUT(request: NextRequest) {
                 dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
             })
             .where(eq(teachers.id, id));
+
+        // Update teacher-class relationships
+        // First, delete all existing relationships
+        await db.delete(guruKelas).where(eq(guruKelas.teacherId, id));
+
+        // Then, insert new relationships if classIds provided
+        if (classIds && Array.isArray(classIds) && classIds.length > 0) {
+            const guruKelasValues = classIds.map(classId => ({
+                teacherId: id,
+                classId,
+            }));
+            await db.insert(guruKelas).values(guruKelasValues);
+        }
 
         return NextResponse.json({
             success: true,

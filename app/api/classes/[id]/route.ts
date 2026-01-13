@@ -49,11 +49,11 @@ export async function PUT(
         }
 
         const body = await req.json();
-        const { name, grade, academicYear } = body;
+        const { name, academicYear } = body;
 
-        if (!name || !grade || !academicYear) {
+        if (!name || !academicYear) {
             return NextResponse.json(
-                { error: 'Name, grade, and academic year are required' },
+                { error: 'Name and academic year are required' },
                 { status: 400 }
             );
         }
@@ -62,7 +62,6 @@ export async function PUT(
             .update(classes)
             .set({
                 name,
-                grade: parseInt(grade),
                 academicYear,
             })
             .where(eq(classes.id, params.id))

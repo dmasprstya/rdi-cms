@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Users, Bell, GraduationCap, Plus, FileText, ClipboardList } from 'lucide-react';
+import { BookOpen, Users, Bell, GraduationCap, Plus, FileText, ClipboardList, BookMarked } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -90,7 +90,7 @@ export default function GuruDashboardPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Link href="/guru/modules">
                             <Button className="w-full h-20 flex-col gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white">
                                 <BookOpen className="w-6 h-6" />
@@ -107,6 +107,12 @@ export default function GuruDashboardPage() {
                             <Button className="w-full h-20 flex-col gap-2" variant="outline">
                                 <Bell className="w-6 h-6 text-yellow-500" />
                                 <span className="font-semibold">Buat Pengumuman</span>
+                            </Button>
+                        </Link>
+                        <Link href="/guru/subjects-management">
+                            <Button className="w-full h-20 flex-col gap-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white">
+                                <BookMarked className="w-6 h-6" />
+                                <span className="font-semibold">Kelola Mata Pelajaran</span>
                             </Button>
                         </Link>
                     </div>

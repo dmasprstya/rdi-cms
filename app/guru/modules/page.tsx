@@ -1,4 +1,4 @@
-import { ModulesManagement } from '@/components/guru/modules-management';
+import ModulesManagement from '@/components/guru/modules-management';
 
 export default function GuruModulesPage() {
     return (

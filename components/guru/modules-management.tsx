@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -30,9 +31,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Pencil, Trash2, BookOpen, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, BookOpen, Eye, EyeOff, Upload, X, FileText, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { DataTable } from '@/components/ui/data-table';
+import { validatePDFFile, formatFileSize, getErrorMessage } from '@/lib/client-file-utils';
 
 interface Module {
     id: string;
@@ -40,6 +42,8 @@ interface Module {
     description: string | null;
     content: string | null;
     fileUrl: string | null;
+    fileName: string | null;
+    fileSize: number | null;
     subjectId: string;
     classId: string | null;
     isPublished: boolean;
@@ -68,12 +72,18 @@ interface ModuleFormData {
     description: string;
     content: string;
     fileUrl: string;
+    fileName: string;
+    fileSize: number;
     subjectId: string;
     classId: string;
     isPublished: boolean;
 }
 
-export function ModulesManagement() {
+interface ModulesManagementProps {
+    rolePrefix?: 'guru' | 'staff';
+}
+
+export default function ModulesManagement({ rolePrefix = 'guru' }: ModulesManagementProps = {}) {
     const [modules, setModules] = useState<Module[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
@@ -87,20 +97,21 @@ export function ModulesManagement() {
         description: '',
         content: '',
         fileUrl: '',
+        fileName: '',
+        fileSize: 0,
         subjectId: '',
-        classId: '',
+        classId: 'all',
         isPublished: true,
     });
 
-    useEffect(() => {
-        fetchModules();
-        fetchSubjects();
-        fetchClasses();
-    }, []);
+    // File upload states
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
-    const fetchModules = async () => {
+    const fetchModules = useCallback(async () => {
         try {
-            const response = await fetch('/api/guru/modules');
+            const response = await fetch(`/api/${rolePrefix}/modules`);
             if (!response.ok) throw new Error('Failed to fetch modules');
             const data = await response.json();
             setModules(data);
@@ -110,11 +121,11 @@ export function ModulesManagement() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [rolePrefix]);
 
-    const fetchSubjects = async () => {
+    const fetchSubjects = useCallback(async () => {
         try {
-            const response = await fetch('/api/guru/subjects');
+            const response = await fetch(`/api/${rolePrefix}/subjects`);
             if (response.ok) {
                 const data = await response.json();
                 setSubjects(data);
@@ -122,11 +133,11 @@ export function ModulesManagement() {
         } catch (error) {
             console.error('Error fetching subjects:', error);
         }
-    };
+    }, [rolePrefix]);
 
-    const fetchClasses = async () => {
+    const fetchClasses = useCallback(async () => {
         try {
-            const response = await fetch('/api/guru/classes');
+            const response = await fetch(`/api/${rolePrefix}/classes`);
             if (response.ok) {
                 const data = await response.json();
                 setClasses(data);
@@ -134,7 +145,82 @@ export function ModulesManagement() {
         } catch (error) {
             console.error('Error fetching classes:', error);
         }
+    }, [rolePrefix]);
+
+    useEffect(() => {
+        fetchModules();
+        fetchSubjects();
+        fetchClasses();
+    }, [fetchModules, fetchSubjects, fetchClasses]);
+
+    // File upload handlers
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file
+        const validation = validatePDFFile(file);
+        if (!validation.valid) {
+            toast.error(getErrorMessage(validation.error!));
+            e.target.value = ''; // Reset input
+            return;
+        }
+
+        setSelectedFile(file);
+        toast.success(`File "${file.name}" siap diupload`);
     };
+
+    const handleFileUpload = async (): Promise<{ fileUrl: string; fileName: string; fileSize: number } | null> => {
+        if (!selectedFile) return null;
+
+        try {
+            setIsUploading(true);
+            setUploadProgress(0);
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            // Simulate progress (actual progress tracking would need XMLHttpRequest)
+            const progressInterval = setInterval(() => {
+                setUploadProgress((prev) => Math.min(prev + 10, 90));
+            }, 100);
+
+            const response = await fetch(`/api/${rolePrefix}/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            clearInterval(progressInterval);
+            setUploadProgress(100);
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.code || 'UPLOAD_FAILED');
+            }
+
+            const data = await response.json();
+            toast.success('File berhasil diupload');
+
+            return {
+                fileUrl: data.fileUrl,
+                fileName: data.fileName,
+                fileSize: data.fileSize,
+            };
+        } catch (error: any) {
+            const errorCode = error.message;
+            toast.error(getErrorMessage(errorCode));
+            return null;
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+    };
+
+    const handleRemoveFile = useCallback(() => {
+        setSelectedFile(null);
+        setFormData((prev) => ({ ...prev, fileUrl: '', fileName: '', fileSize: 0 }));
+        toast.info('File dihapus');
+    }, []);
 
     const handleAdd = async () => {
         try {
@@ -143,10 +229,30 @@ export function ModulesManagement() {
                 return;
             }
 
-            const response = await fetch('/api/guru/modules', {
+            let fileMetadata = {
+                fileUrl: formData.fileUrl,
+                fileName: formData.fileName,
+                fileSize: formData.fileSize,
+            };
+
+            // Upload file if selected
+            if (selectedFile) {
+                const uploadResult = await handleFileUpload();
+                if (!uploadResult) {
+                    // Upload failed, don't proceed
+                    return;
+                }
+                fileMetadata = uploadResult;
+            }
+
+            const response = await fetch(`/api/${rolePrefix}/modules`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    ...fileMetadata,
+                    classId: formData.classId === 'all' ? null : formData.classId,
+                }),
             });
 
             if (!response.ok) throw new Error('Failed to create module');
@@ -170,10 +276,30 @@ export function ModulesManagement() {
                 return;
             }
 
-            const response = await fetch(`/api/guru/modules/${selectedModule.id}`, {
+            let fileMetadata = {
+                fileUrl: formData.fileUrl,
+                fileName: formData.fileName,
+                fileSize: formData.fileSize,
+            };
+
+            // Upload new file if selected
+            if (selectedFile) {
+                const uploadResult = await handleFileUpload();
+                if (!uploadResult) {
+                    // Upload failed, don't proceed
+                    return;
+                }
+                fileMetadata = uploadResult;
+            }
+
+            const response = await fetch(`/api/${rolePrefix}/modules/${selectedModule.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    ...fileMetadata,
+                    classId: formData.classId === 'all' ? null : formData.classId,
+                }),
             });
 
             if (!response.ok) throw new Error('Failed to update module');
@@ -193,7 +319,7 @@ export function ModulesManagement() {
         if (!selectedModule) return;
 
         try {
-            const response = await fetch(`/api/guru/modules/${selectedModule.id}`, {
+            const response = await fetch(`/api/${rolePrefix}/modules/${selectedModule.id}`, {
                 method: 'DELETE',
             });
 
@@ -216,10 +342,13 @@ export function ModulesManagement() {
             description: module.description || '',
             content: module.content || '',
             fileUrl: module.fileUrl || '',
+            fileName: module.fileName || '',
+            fileSize: module.fileSize || 0,
             subjectId: module.subjectId,
-            classId: module.classId || '',
+            classId: module.classId || 'all',
             isPublished: module.isPublished,
         });
+        setSelectedFile(null); // Reset file selection
         setIsEditOpen(true);
     };
 
@@ -234,10 +363,14 @@ export function ModulesManagement() {
             description: '',
             content: '',
             fileUrl: '',
+            fileName: '',
+            fileSize: 0,
             subjectId: '',
-            classId: '',
+            classId: 'all',
             isPublished: true,
         });
+        setSelectedFile(null);
+        setUploadProgress(0);
     };
 
     const columns = [
@@ -318,7 +451,8 @@ export function ModulesManagement() {
         },
     ];
 
-    const ModuleFormFields = () => (
+    // Memoize form fields to prevent re-render issues
+    const moduleFormFields = useMemo(() => (
         <div className="space-y-4 py-4">
             <div className="space-y-2">
                 <Label htmlFor="title">Judul Modul <span className="text-red-500">*</span></Label>
@@ -351,7 +485,7 @@ export function ModulesManagement() {
                         <SelectValue placeholder="Semua kelas atau pilih spesifik" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Semua Kelas</SelectItem>
+                        <SelectItem value="all">Semua Kelas</SelectItem>
                         {classes.map((cls) => (
                             <SelectItem key={cls.id} value={cls.id}>
                                 {cls.name} - Kelas {cls.grade}
@@ -380,16 +514,103 @@ export function ModulesManagement() {
                     rows={5}
                 />
             </div>
+
+            {/* PDF File Upload Section */}
             <div className="space-y-2">
-                <Label htmlFor="fileUrl">URL File (Opsional)</Label>
-                <Input
-                    id="fileUrl"
-                    type="url"
-                    placeholder="https://example.com/file.pdf"
-                    value={formData.fileUrl}
-                    onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                />
+                <Label>File PDF (Opsional)</Label>
+
+                {/* Show existing file if present */}
+                {formData.fileUrl && !selectedFile && (
+                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                        <FileText className="w-5 h-5 text-blue-500" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{formData.fileName}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {formatFileSize(formData.fileSize)}
+                            </p>
+                        </div>
+                        <a
+                            href={formData.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-600"
+                        >
+                            <Download className="w-4 h-4" />
+                        </a>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleRemoveFile}
+                            disabled={isUploading}
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
+
+                {/* Show selected file if present */}
+                {selectedFile && (
+                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                        <FileText className="w-5 h-5 text-blue-500" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {formatFileSize(selectedFile.size)}
+                            </p>
+                        </div>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedFile(null)}
+                            disabled={isUploading}
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
+
+                {/* Upload progress */}
+                {isUploading && (
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Mengupload...</span>
+                            <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* File input */}
+                {!formData.fileUrl && !selectedFile && (
+                    <div>
+                        <label
+                            htmlFor="pdf-upload"
+                            className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
+                            <Upload className="w-5 h-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                                Klik untuk upload PDF (maks 10MB)
+                            </span>
+                        </label>
+                        <input
+                            id="pdf-upload"
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handleFileChange}
+                            disabled={isUploading}
+                            className="hidden"
+                        />
+                    </div>
+                )}
             </div>
+
             <div className="flex items-center space-x-2">
                 <input
                     type="checkbox"
@@ -401,7 +622,7 @@ export function ModulesManagement() {
                 <Label htmlFor="isPublished" className="cursor-pointer">Publikasikan modul</Label>
             </div>
         </div>
-    );
+    ), [formData, subjects, classes, selectedFile, isUploading, uploadProgress, handleRemoveFile]);
 
     return (
         <div className="space-y-6">
@@ -423,8 +644,11 @@ export function ModulesManagement() {
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Tambah Modul Baru</DialogTitle>
+                            <DialogDescription>
+                                Buat modul pembelajaran baru dengan mengunggah file PDF atau menambahkan konten langsung.
+                            </DialogDescription>
                         </DialogHeader>
-                        <ModuleFormFields />
+                        {moduleFormFields}
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsAddOpen(false)}>
                                 Batal
@@ -449,8 +673,11 @@ export function ModulesManagement() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Modul</DialogTitle>
+                        <DialogDescription>
+                            Perbarui informasi modul atau ganti file PDF yang sudah ada.
+                        </DialogDescription>
                     </DialogHeader>
-                    <ModuleFormFields />
+                    {moduleFormFields}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsEditOpen(false)}>
                             Batal

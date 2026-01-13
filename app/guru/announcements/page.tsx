@@ -1,4 +1,4 @@
-import { AnnouncementsManagement } from '@/components/guru/announcements-management';
+import AnnouncementsManagement from '@/components/guru/announcements-management';
 
 export default function GuruAnnouncementsPage() {
     return (

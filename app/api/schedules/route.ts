@@ -36,7 +36,6 @@ export async function GET(req: NextRequest) {
                     columns: {
                         id: true,
                         name: true,
-                        grade: true,
                     }
                 },
                 subject: {

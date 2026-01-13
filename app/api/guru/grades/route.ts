@@ -95,9 +95,20 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { classId, subjectId, semester, academicYear, gradesData } = body;
 
+        // Log incoming request
+        console.log('POST /api/guru/grades - Request:', {
+            teacherId: teacher.id,
+            classId,
+            subjectId,
+            semester,
+            academicYear,
+            gradesCount: gradesData?.length
+        });
+
         if (!classId || !subjectId || !semester || !academicYear || !gradesData || !Array.isArray(gradesData)) {
+            console.error('Invalid request data:', { classId, subjectId, semester, academicYear, gradesData: !!gradesData });
             return NextResponse.json(
-                { error: 'Invalid request data' },
+                { error: 'Invalid request data - missing required fields' },
                 { status: 400 }
             );
         }
@@ -115,74 +126,142 @@ export async function POST(req: NextRequest) {
             .limit(1);
 
         if (!teaches) {
+            console.error('Teacher does not teach this class:', { teacherId: teacher.id, classId });
             return NextResponse.json({ error: 'You do not teach this class' }, { status: 403 });
         }
 
-        // Process each grade
+        // Process each grade with detailed error tracking
         const results = [];
-        for (const gradeData of gradesData) {
+        const errors = [];
+        const skipped = [];
+
+        for (let i = 0; i < gradesData.length; i++) {
+            const gradeData = gradesData[i];
             const { studentId, score, remarks } = gradeData;
 
-            if (score < 0 || score > 100) {
-                continue; // Skip invalid scores
+            // Validate studentId
+            if (!studentId || typeof studentId !== 'string') {
+                errors.push({
+                    index: i,
+                    studentId: studentId || 'undefined',
+                    reason: 'Invalid or missing studentId'
+                });
+                continue;
             }
 
-            // Check if grade exists
-            const [existing] = await db
-                .select()
-                .from(grades)
-                .where(
-                    and(
-                        eq(grades.studentId, studentId),
-                        eq(grades.subjectId, subjectId),
-                        eq(grades.classId, classId),
-                        eq(grades.semester, semester),
-                        eq(grades.academicYear, academicYear)
+            // Validate score type and value
+            if (typeof score !== 'number' || isNaN(score)) {
+                errors.push({
+                    index: i,
+                    studentId,
+                    score,
+                    scoreType: typeof score,
+                    reason: `Invalid score type (expected number, got ${typeof score})`
+                });
+                continue;
+            }
+
+            if (score < 0 || score > 100) {
+                skipped.push({
+                    index: i,
+                    studentId,
+                    score,
+                    reason: 'Score out of valid range (0-100)'
+                });
+                continue;
+            }
+
+            try {
+                // Check if grade exists
+                const [existing] = await db
+                    .select()
+                    .from(grades)
+                    .where(
+                        and(
+                            eq(grades.studentId, studentId),
+                            eq(grades.subjectId, subjectId),
+                            eq(grades.classId, classId),
+                            eq(grades.semester, semester),
+                            eq(grades.academicYear, academicYear)
+                        )
                     )
-                )
-                .limit(1);
+                    .limit(1);
 
-            if (existing) {
-                // Update existing grade
-                const [updated] = await db
-                    .update(grades)
-                    .set({
-                        score,
-                        remarks: remarks || null,
-                    })
-                    .where(eq(grades.id, existing.id))
-                    .returning();
+                if (existing) {
+                    // Update existing grade
+                    const [updated] = await db
+                        .update(grades)
+                        .set({
+                            score,
+                            remarks: remarks || null,
+                        })
+                        .where(eq(grades.id, existing.id))
+                        .returning();
 
-                results.push(updated);
-            } else {
-                // Create new grade
-                const [created] = await db
-                    .insert(grades)
-                    .values({
-                        studentId,
-                        subjectId,
-                        classId,
-                        teacherId: teacher.id,
-                        score,
-                        semester,
-                        academicYear,
-                        remarks: remarks || null,
-                    })
-                    .returning();
+                    results.push(updated);
+                } else {
+                    // Create new grade
+                    const [created] = await db
+                        .insert(grades)
+                        .values({
+                            studentId,
+                            subjectId,
+                            classId,
+                            teacherId: teacher.id,
+                            score,
+                            semester,
+                            academicYear,
+                            remarks: remarks || null,
+                        })
+                        .returning();
 
-                results.push(created);
+                    results.push(created);
+                }
+            } catch (dbError: any) {
+                console.error(`Database error for student ${studentId}:`, dbError);
+                errors.push({
+                    index: i,
+                    studentId,
+                    reason: dbError.message || 'Database error',
+                    code: dbError.code
+                });
             }
         }
 
-        return NextResponse.json({
-            success: true,
+        // Log results
+        console.log('Grade save results:', {
+            total: gradesData.length,
+            saved: results.length,
+            errors: errors.length,
+            skipped: skipped.length
+        });
+
+        // Return detailed response
+        const hasErrors = errors.length > 0;
+        const response = {
+            success: !hasErrors,
             count: results.length,
-            grades: results
-        }, { status: 201 });
-    } catch (error) {
+            grades: results,
+            summary: {
+                total: gradesData.length,
+                saved: results.length,
+                failed: errors.length,
+                skipped: skipped.length
+            },
+            ...(errors.length > 0 && { errors }),
+            ...(skipped.length > 0 && { skipped })
+        };
+
+        return NextResponse.json(response, {
+            status: hasErrors ? 400 : 201
+        });
+    } catch (error: any) {
         console.error('Error saving grades:', error);
         return NextResponse.json(
-            { error: 'Failed to save grades' },
+            {
+                error: 'Failed to save grades',
+                details: error.message
+            },
             { status: 500 }
         );
     }

@@ -37,7 +37,6 @@ interface Assignment {
     classId: string;
     subjectId: string;
     className: string;
-    classGrade: number;
     classAcademicYear: string;
     subjectName: string;
     subjectCode: string;
@@ -176,7 +175,7 @@ export function KelasMataPelajaranManagement() {
                 <div>
                     <div className="font-medium text-foreground">{row.className}</div>
                     <div className="text-xs text-muted-foreground">
-                        Kelas {row.classGrade} • {row.classAcademicYear}
+                        {row.classAcademicYear}
                     </div>
                 </div>
             ),
@@ -234,7 +233,7 @@ export function KelasMataPelajaranManagement() {
                                     <SelectContent>
                                         {classes.map((cls) => (
                                             <SelectItem key={cls.id} value={cls.id}>
-                                                {cls.name} - Kelas {cls.grade} ({cls.academicYear})
+                                                {cls.name} ({cls.academicYear})
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

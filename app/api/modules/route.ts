@@ -32,7 +32,6 @@ export async function GET() {
                 subjectName: subjects.name,
                 subjectCode: subjects.code,
                 className: classes.name,
-                classGrade: classes.grade,
                 teacherName: users.name,
             })
             .from(modules)

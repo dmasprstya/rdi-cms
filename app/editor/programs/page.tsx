@@ -218,7 +218,7 @@ export default function ProgramsEditor() {
             slug: `program-baru-${Date.now()}`,
             shortDescription: '',
             fullDescription: '',
-            featuredImage: '/images/programs/placeholder.jpg',
+            featuredImage: '/images/programs/placeholder.svg',
             keyFeatures: ['Feature 1'],
             ctaButtonText: 'Daftar Program →',
             ctaButtonLink: '',
@@ -713,7 +713,7 @@ export default function ProgramsEditor() {
                                         <Input
                                             value={item.featuredImage}
                                             onChange={(e) => updateItem(item.id, 'featuredImage', e.target.value)}
-                                            placeholder="/images/programs/placeholder.jpg"
+                                            placeholder="/images/programs/placeholder.svg"
                                         />
                                         {item.featuredImage && (
                                             <div className="relative w-full aspect-video bg-muted rounded overflow-hidden">

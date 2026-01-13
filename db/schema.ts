@@ -12,6 +12,8 @@ export const users = pgTable('users', {
     email: varchar('email', { length: 255 }).notNull().unique(),
     password: varchar('password', { length: 255 }).notNull(),
     role: roleEnum('role').notNull().default('student'),
+    phone: varchar('phone', { length: 20 }),
+    address: text('address'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -20,7 +22,6 @@ export const users = pgTable('users', {
 export const classes = pgTable('classes', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: varchar('name', { length: 100 }).notNull(),
-    grade: integer('grade').notNull(), // e.g., 10, 11, 12
     academicYear: varchar('academic_year', { length: 20 }).notNull(), // e.g., "2023/2024"
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -222,6 +223,8 @@ export const modules = pgTable('modules', {
     description: text('description'),
     content: text('content'), // Rich text content or HTML
     fileUrl: text('file_url'), // Link to downloadable file
+    fileName: varchar('file_name', { length: 255 }), // Original filename
+    fileSize: integer('file_size'), // File size in bytes
     subjectId: text('subject_id').notNull().references(() => subjects.id, { onDelete: 'cascade' }),
     classId: text('class_id').references(() => classes.id, { onDelete: 'cascade' }), // Optional: if null, available to all classes taking the subject
     teacherId: text('teacher_id').notNull().references(() => teachers.id, { onDelete: 'cascade' }),

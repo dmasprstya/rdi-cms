@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     },
 };
 
+// Use ISR (Incremental Static Regeneration) - cache for 5 minutes like homepage
+export const revalidate = 300; // 5 minutes
+
 export default async function ProgramPage() {
     const content = await getProgramsContent();
     const sortedCategories = [...content.categories].sort((a, b) => a.order - b.order);

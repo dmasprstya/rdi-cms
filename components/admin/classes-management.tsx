@@ -37,7 +37,6 @@ interface Class {
 
 interface ClassFormData {
     name: string;
-    grade: string;
     academicYear: string;
 }
 
@@ -50,7 +49,6 @@ export function ClassesManagement() {
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
     const [formData, setFormData] = useState<ClassFormData>({
         name: '',
-        grade: '',
         academicYear: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
     });
 
@@ -74,7 +72,7 @@ export function ClassesManagement() {
 
     const handleAdd = async () => {
         try {
-            if (!formData.name || !formData.grade || !formData.academicYear) {
+            if (!formData.name || !formData.academicYear) {
                 toast.error('Semua field harus diisi');
                 return;
             }
@@ -82,7 +80,10 @@ export function ClassesManagement() {
             const response = await fetch('/api/classes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    grade: 10, // Default grade value
+                }),
             });
 
             if (!response.ok) throw new Error('Failed to create class');
@@ -91,7 +92,6 @@ export function ClassesManagement() {
             setIsAddOpen(false);
             setFormData({
                 name: '',
-                grade: '',
                 academicYear: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
             });
             fetchClasses();
@@ -105,7 +105,7 @@ export function ClassesManagement() {
         if (!selectedClass) return;
 
         try {
-            if (!formData.name || !formData.grade || !formData.academicYear) {
+            if (!formData.name || !formData.academicYear) {
                 toast.error('Semua field harus diisi');
                 return;
             }
@@ -113,7 +113,10 @@ export function ClassesManagement() {
             const response = await fetch(`/api/classes/${selectedClass.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    grade: selectedClass.grade, // Keep existing grade
+                }),
             });
 
             if (!response.ok) throw new Error('Failed to update class');
@@ -152,7 +155,6 @@ export function ClassesManagement() {
         setSelectedClass(classData);
         setFormData({
             name: classData.name,
-            grade: classData.grade.toString(),
             academicYear: classData.academicYear,
         });
         setIsEditOpen(true);
@@ -168,12 +170,6 @@ export function ClassesManagement() {
             header: 'Nama Kelas',
             accessor: (row: Class) => (
                 <div className="font-medium text-foreground">{row.name}</div>
-            ),
-        },
-        {
-            header: 'Tingkat',
-            accessor: (row: Class) => (
-                <div className="text-muted-foreground">Kelas {row.grade}</div>
             ),
         },
         {
@@ -220,11 +216,7 @@ export function ClassesManagement() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-2xl font-bold text-foreground">Kelola Kelas</h2>
-                    <p className="text-muted-foreground">Manajemen data kelas sekolah</p>
-                </div>
+            <div className="flex justify-end items-center">
                 <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                     <DialogTrigger asChild>
                         <Button className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
@@ -241,22 +233,10 @@ export function ClassesManagement() {
                                 <Label htmlFor="name">Nama Kelas</Label>
                                 <Input
                                     id="name"
-                                    placeholder="Contoh: X-1, XI IPA 1"
+                                    placeholder="Contoh: Jepang, Taiwan"
                                     value={formData.name}
                                     onChange={(e) =>
                                         setFormData({ ...formData, name: e.target.value })
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="grade">Tingkat</Label>
-                                <Input
-                                    id="grade"
-                                    type="number"
-                                    placeholder="Contoh: 10, 11, 12"
-                                    value={formData.grade}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, grade: e.target.value })
                                     }
                                 />
                             </div>
@@ -302,22 +282,10 @@ export function ClassesManagement() {
                             <Label htmlFor="edit-name">Nama Kelas</Label>
                             <Input
                                 id="edit-name"
-                                placeholder="Contoh: X-1, XI IPA 1"
+                                placeholder="Contoh: Jepang, Taiwan"
                                 value={formData.name}
                                 onChange={(e) =>
                                     setFormData({ ...formData, name: e.target.value })
-                                }
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-grade">Tingkat</Label>
-                            <Input
-                                id="edit-grade"
-                                type="number"
-                                placeholder="Contoh: 10, 11, 12"
-                                value={formData.grade}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, grade: e.target.value })
                                 }
                             />
                         </div>

@@ -11,7 +11,6 @@ interface StudentProfile {
     userName: string;
     userEmail: string;
     className: string | null;
-    classGrade: number | null;
 }
 
 interface Announcement {

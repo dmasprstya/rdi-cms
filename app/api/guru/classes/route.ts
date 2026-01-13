@@ -29,13 +29,12 @@ export async function GET(req: NextRequest) {
             .select({
                 id: classes.id,
                 name: classes.name,
-                grade: classes.grade,
                 academicYear: classes.academicYear,
             })
             .from(guruKelas)
             .innerJoin(classes, eq(guruKelas.classId, classes.id))
             .where(eq(guruKelas.teacherId, teacher.id))
-            .orderBy(classes.grade, classes.name);
+            .orderBy(classes.name);
 
         return NextResponse.json(teacherClasses);
     } catch (error) {

@@ -25,8 +25,16 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { UserPlus, Search, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { UserPlus, Search, Pencil, Trash2, Loader2, X, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface Teacher {
     id: string;
@@ -37,6 +45,14 @@ interface Teacher {
     userId: string;
     userName: string;
     userEmail: string;
+    classIds?: string[];
+}
+
+interface Class {
+    id: string;
+    name: string;
+    grade: number;
+    academicYear: string;
 }
 
 interface TeacherFormData {
@@ -48,6 +64,7 @@ interface TeacherFormData {
     subject: string;
     phone: string;
     dateOfBirth: string;
+    classIds: string[];
 }
 
 const initialFormData: TeacherFormData = {
@@ -58,10 +75,12 @@ const initialFormData: TeacherFormData = {
     subject: '',
     phone: '',
     dateOfBirth: '',
+    classIds: [],
 };
 
 export function TeachersManagement() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -70,6 +89,7 @@ export function TeachersManagement() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [formData, setFormData] = useState<TeacherFormData>(initialFormData);
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
     const { toast } = useToast();
 
     const fetchTeachers = useCallback(async () => {
@@ -98,9 +118,22 @@ export function TeachersManagement() {
         }
     }, [toast]);
 
+    const fetchClasses = useCallback(async () => {
+        try {
+            const response = await fetch('/api/classes');
+            if (response.ok) {
+                const data = await response.json();
+                setClasses(data);
+            }
+        } catch (error) {
+            console.error('Error fetching classes:', error);
+        }
+    }, []);
+
     useEffect(() => {
         fetchTeachers();
-    }, [fetchTeachers]);
+        fetchClasses();
+    }, [fetchTeachers, fetchClasses]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -173,8 +206,20 @@ export function TeachersManagement() {
             subject: teacher.subject || '',
             phone: teacher.phone || '',
             dateOfBirth: teacher.dateOfBirth ? new Date(teacher.dateOfBirth).toISOString().split('T')[0] : '',
+            classIds: teacher.classIds || [],
         });
         setIsEditDialogOpen(true);
+    };
+
+    const handleClassToggle = (classId: string) => {
+        setFormData(prev => {
+            const isSelected = prev.classIds.includes(classId);
+            if (isSelected) {
+                return { ...prev, classIds: prev.classIds.filter(id => id !== classId) };
+            } else {
+                return { ...prev, classIds: [...prev.classIds, classId] };
+            }
+        });
     };
 
     const handleUpdateTeacher = async (e: React.FormEvent) => {
@@ -352,29 +397,25 @@ export function TeachersManagement() {
                                     <Label htmlFor="password" className="text-right text-foreground">
                                         Password <span className="text-destructive">*</span>
                                     </Label>
-                                    <Input
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        className="col-span-3"
-                                        placeholder="Password untuk login"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="subject" className="text-right text-foreground">
-                                        Mata Pelajaran
-                                    </Label>
-                                    <Input
-                                        id="subject"
-                                        name="subject"
-                                        value={formData.subject}
-                                        onChange={handleInputChange}
-                                        className="col-span-3"
-                                        placeholder="Mata pelajaran yang diajar"
-                                    />
+                                    <div className="col-span-3 relative">
+                                        <Input
+                                            id="password"
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            className="pr-10"
+                                            placeholder="Password untuk login"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="phone" className="text-right text-foreground">
@@ -401,6 +442,45 @@ export function TeachersManagement() {
                                         onChange={handleInputChange}
                                         className="col-span-3"
                                     />
+                                </div>
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label className="text-right text-foreground pt-2">
+                                        Kelas
+                                    </Label>
+                                    <div className="col-span-3 space-y-2">
+                                        <Select onValueChange={handleClassToggle}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih kelas..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {classes.map((classItem) => (
+                                                    <SelectItem
+                                                        key={classItem.id}
+                                                        value={classItem.id}
+                                                        disabled={formData.classIds.includes(classItem.id)}
+                                                    >
+                                                        {classItem.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {formData.classIds.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {formData.classIds.map((classId) => {
+                                                    const classItem = classes.find(c => c.id === classId);
+                                                    return classItem ? (
+                                                        <Badge key={classId} variant="secondary" className="gap-1">
+                                                            {classItem.name}
+                                                            <X
+                                                                className="w-3 h-3 cursor-pointer"
+                                                                onClick={() => handleClassToggle(classId)}
+                                                            />
+                                                        </Badge>
+                                                    ) : null;
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <DialogFooter>
@@ -480,7 +560,7 @@ export function TeachersManagement() {
                                     <tr>
                                         <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">NIP</th>
                                         <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Nama</th>
-                                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Mata Pelajaran</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Kelas yang Diajar</th>
                                         <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Email</th>
                                         <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">No. Telepon</th>
                                         <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Aksi</th>
@@ -492,7 +572,18 @@ export function TeachersManagement() {
                                             <td className="py-3 px-4 text-sm text-foreground font-medium">{teacher.nip}</td>
                                             <td className="py-3 px-4 text-sm text-foreground">{teacher.userName}</td>
                                             <td className="py-3 px-4 text-sm text-muted-foreground">
-                                                {teacher.subject || '-'}
+                                                {teacher.classIds && teacher.classIds.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {teacher.classIds.map((classId) => {
+                                                            const classItem = classes.find(c => c.id === classId);
+                                                            return classItem ? (
+                                                                <Badge key={classId} variant="outline" className="text-xs">
+                                                                    {classItem.name}
+                                                                </Badge>
+                                                            ) : null;
+                                                        })}
+                                                    </div>
+                                                ) : '-'}
                                             </td>
                                             <td className="py-3 px-4 text-sm text-muted-foreground">{teacher.userEmail}</td>
                                             <td className="py-3 px-4 text-sm text-muted-foreground">
@@ -602,17 +693,27 @@ export function TeachersManagement() {
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="edit-subject" className="text-right text-foreground">
-                                    Mata Pelajaran
+                                <Label htmlFor="edit-password" className="text-right text-foreground">
+                                    Password
                                 </Label>
-                                <Input
-                                    id="edit-subject"
-                                    name="subject"
-                                    value={formData.subject}
-                                    onChange={handleInputChange}
-                                    className="col-span-3"
-                                    placeholder="Mata pelajaran yang diajar"
-                                />
+                                <div className="col-span-3 relative">
+                                    <Input
+                                        id="edit-password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        className="pr-10"
+                                        placeholder="Kosongkan jika tidak ingin mengubah"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="edit-phone" className="text-right text-foreground">
@@ -639,6 +740,45 @@ export function TeachersManagement() {
                                     onChange={handleInputChange}
                                     className="col-span-3"
                                 />
+                            </div>
+                            <div className="grid grid-cols-4 items-start gap-4">
+                                <Label className="text-right text-foreground pt-2">
+                                    Kelas
+                                </Label>
+                                <div className="col-span-3 space-y-2">
+                                    <Select onValueChange={handleClassToggle}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih kelas..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {classes.map((classItem) => (
+                                                <SelectItem
+                                                    key={classItem.id}
+                                                    value={classItem.id}
+                                                    disabled={formData.classIds.includes(classItem.id)}
+                                                >
+                                                    {classItem.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {formData.classIds.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {formData.classIds.map((classId) => {
+                                                const classItem = classes.find(c => c.id === classId);
+                                                return classItem ? (
+                                                    <Badge key={classId} variant="secondary" className="gap-1">
+                                                        {classItem.name}
+                                                        <X
+                                                            className="w-3 h-3 cursor-pointer"
+                                                            onClick={() => handleClassToggle(classId)}
+                                                        />
+                                                    </Badge>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <DialogFooter>

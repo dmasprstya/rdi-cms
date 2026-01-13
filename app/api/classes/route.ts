@@ -18,15 +18,14 @@ export async function GET(req: NextRequest) {
             .select({
                 id: classes.id,
                 name: classes.name,
-                grade: classes.grade,
                 academicYear: classes.academicYear,
                 createdAt: classes.createdAt,
                 studentCount: sql<number>`cast(count(${students.id}) as int)`,
             })
             .from(classes)
             .leftJoin(students, eq(classes.id, students.classId))
-            .groupBy(classes.id, classes.name, classes.grade, classes.academicYear, classes.createdAt)
-            .orderBy(classes.grade, classes.name);
+            .groupBy(classes.id, classes.name, classes.academicYear, classes.createdAt)
+            .orderBy(classes.name);
 
         return NextResponse.json(allClasses);
     } catch (error) {
@@ -48,18 +47,17 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { name, grade, academicYear } = body;
+        const { name, academicYear } = body;
 
-        if (!name || !grade || !academicYear) {
+        if (!name || !academicYear) {
             return NextResponse.json(
-                { error: 'Name, grade, and academic year are required' },
+                { error: 'Name and academic year are required' },
                 { status: 400 }
             );
         }
 
         const [newClass] = await db.insert(classes).values({
             name,
-            grade: parseInt(grade),
             academicYear,
         }).returning();
 

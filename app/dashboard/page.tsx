@@ -1,16 +1,62 @@
-﻿import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, BookOpen, GraduationCap, Calendar, Bell } from 'lucide-react';
+﻿'use client';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, BookOpen, GraduationCap, Calendar, Bell, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 
-export default async function DashboardPage() {
-    // In a real app, fetch these stats from the database
-    const stats = {
-        students: 150,
-        teachers: 25,
-        classes: 12,
-        subjects: 15,
+type ActivityType = 'student' | 'teacher' | 'class' | 'staff';
+
+interface RecentActivity {
+    id: string;
+    type: ActivityType;
+    title: string;
+    timestamp: string;
+}
+
+interface Stats {
+    students: number;
+    teachers: number;
+    classes: number;
+    subjects: number;
+    recentActivities: RecentActivity[];
+}
+
+export default function DashboardPage() {
+    const [stats, setStats] = useState<Stats>({
+        students: 0,
+        teachers: 0,
+        classes: 0,
+        subjects: 0,
+        recentActivities: [],
+    });
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchStats = async () => {
+        try {
+            const response = await fetch('/api/admin/stats');
+            if (response.ok) {
+                const data = await response.json();
+                setStats(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch stats:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    useEffect(() => {
+        // Initial fetch
+        fetchStats();
+
+        // Set up polling every 5 seconds
+        const interval = setInterval(fetchStats, 5000);
+
+        // Cleanup on unmount
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="space-y-8">
@@ -58,7 +104,7 @@ export default async function DashboardPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Link href="/dashboard/students">
                             <Button className="w-full h-20 flex-col gap-2" variant="outline">
                                 <Users className="w-6 h-6 text-blue-500" />
@@ -69,6 +115,12 @@ export default async function DashboardPage() {
                             <Button className="w-full h-20 flex-col gap-2" variant="outline">
                                 <GraduationCap className="w-6 h-6 text-green-500" />
                                 <span className="font-semibold">Kelola Guru</span>
+                            </Button>
+                        </Link>
+                        <Link href="/dashboard/staff">
+                            <Button className="w-full h-20 flex-col gap-2" variant="outline">
+                                <UserCog className="w-6 h-6 text-cyan-500" />
+                                <span className="font-semibold">Kelola Staff</span>
                             </Button>
                         </Link>
                         <Link href="/dashboard/classes">
@@ -113,26 +165,17 @@ export default async function DashboardPage() {
                     <CardTitle>Aktivitas Terbaru</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
-                        <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-medium text-foreground">Siswa baru ditambahkan</p>
-                                <p className="text-sm text-muted-foreground">2 jam yang lalu</p>
-                            </div>
+                    {stats.recentActivities.length > 0 ? (
+                        <div className="space-y-4">
+                            {stats.recentActivities.map((activity) => (
+                                <ActivityCard key={activity.id} activity={activity} />
+                            ))}
                         </div>
-                        <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
-                            <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                                <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-medium text-foreground">Nilai semester diupdate</p>
-                                <p className="text-sm text-muted-foreground">5 jam yang lalu</p>
-                            </div>
-                        </div>
-                    </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                            Belum ada aktivitas terbaru
+                        </p>
+                    )}
                 </CardContent>
             </Card>
         </div>
@@ -165,5 +208,80 @@ function StatCard({
                 </div>
             </CardContent>
         </Card>
+    );
+}
+
+// Helper function to get icon and colors based on activity type
+function getActivityStyle(type: ActivityType) {
+    switch (type) {
+        case 'student':
+            return {
+                icon: <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
+                bgColor: 'bg-blue-100 dark:bg-blue-900',
+            };
+        case 'teacher':
+            return {
+                icon: <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />,
+                bgColor: 'bg-green-100 dark:bg-green-900',
+            };
+        case 'class':
+            return {
+                icon: <BookOpen className="w-5 h-5 text-orange-600 dark:text-orange-400" />,
+                bgColor: 'bg-orange-100 dark:bg-orange-900',
+            };
+        case 'staff':
+            return {
+                icon: <UserCog className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />,
+                bgColor: 'bg-cyan-100 dark:bg-cyan-900',
+            };
+        default:
+            return {
+                icon: <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />,
+                bgColor: 'bg-gray-100 dark:bg-gray-900',
+            };
+    }
+}
+
+// Helper function to format relative time
+function formatRelativeTime(timestamp: string): string {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+        return 'baru saja';
+    } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} menit yang lalu`;
+    } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} jam yang lalu`;
+    } else if (diffInSeconds < 2592000) {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} hari yang lalu`;
+    } else {
+        return past.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
+    }
+}
+
+// Activity Card Component
+function ActivityCard({ activity }: { activity: RecentActivity }) {
+    const style = getActivityStyle(activity.type);
+    const relativeTime = formatRelativeTime(activity.timestamp);
+
+    return (
+        <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
+            <div className={`w-10 h-10 ${style.bgColor} rounded-full flex items-center justify-center`}>
+                {style.icon}
+            </div>
+            <div className="flex-1">
+                <p className="font-medium text-foreground">{activity.title}</p>
+                <p className="text-sm text-muted-foreground">{relativeTime}</p>
+            </div>
+        </div>
     );
 }

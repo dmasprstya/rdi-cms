@@ -11,6 +11,7 @@ export default auth((req) => {
     const isStudentPage = nextUrl.pathname.startsWith('/student');
     const isEditorPage = nextUrl.pathname.startsWith('/editor');
     const isGuruPage = nextUrl.pathname.startsWith('/guru');
+    const isStaffPage = nextUrl.pathname.startsWith('/staff');
     const isApiRoute = nextUrl.pathname.startsWith('/api');
 
     // Allow API routes to handle their own auth
@@ -28,6 +29,9 @@ export default auth((req) => {
         }
         if (userRole === 'guru') {
             return NextResponse.redirect(new URL('/guru', req.url));
+        }
+        if (userRole === 'staff') {
+            return NextResponse.redirect(new URL('/staff', req.url));
         }
         return NextResponse.redirect(new URL('/dashboard', req.url));
     }
@@ -82,6 +86,25 @@ export default auth((req) => {
             }
             if (userRole === 'editor') {
                 return NextResponse.redirect(new URL('/editor', req.url));
+            }
+            return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+    }
+
+    // Protect staff routes (staff only)
+    if (isStaffPage) {
+        if (!isLoggedIn) {
+            return NextResponse.redirect(new URL('/login', req.url));
+        }
+        if (userRole !== 'staff') {
+            if (userRole === 'student') {
+                return NextResponse.redirect(new URL('/student', req.url));
+            }
+            if (userRole === 'editor') {
+                return NextResponse.redirect(new URL('/editor', req.url));
+            }
+            if (userRole === 'guru') {
+                return NextResponse.redirect(new URL('/guru', req.url));
             }
             return NextResponse.redirect(new URL('/dashboard', req.url));
         }

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
     try {
         const session = await auth();
-        if (!session || session.user.role !== 'admin') {
+        if (!session || !['admin', 'staff'].includes(session.user.role)) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }
@@ -178,6 +178,7 @@ export async function PUT(request: NextRequest) {
             id,
             name,
             email,
+            password, // Add password parameter
             nis,
             classId,
             phone,
@@ -238,15 +239,23 @@ export async function PUT(request: NextRequest) {
             }
         }
 
+        // Prepare user update data
+        const userUpdateData: any = {
+            ...(name && { name }),
+            ...(email && { email }),
+            updatedAt: new Date(),
+        };
+
+        // Hash password if provided
+        if (password) {
+            userUpdateData.password = await bcrypt.hash(password, 10);
+        }
+
         // Update user info
-        if (name || email) {
+        if (name || email || password) {
             await db
                 .update(users)
-                .set({
-                    ...(name && { name }),
-                    ...(email && { email }),
-                    updatedAt: new Date(),
-                })
+                .set(userUpdateData)
                 .where(eq(users.id, existingStudent[0].userId));
         }
 

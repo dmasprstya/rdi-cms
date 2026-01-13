@@ -1,4 +1,4 @@
-import { GradeInputManagement } from '@/components/guru/grade-input';
+import GradeInputManagement from '@/components/guru/grade-input';
 
 export default function GuruGradesPage() {
     return (

@@ -464,7 +464,7 @@ export function ModulesManagement() {
                                                 <SelectItem value="ALL_CLASSES">Semua Kelas</SelectItem>
                                                 {classes.map((cls) => (
                                                     <SelectItem key={cls.id} value={cls.id}>
-                                                        {cls.name} (Tingkat {cls.grade})
+                                                        {cls.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -788,7 +788,7 @@ export function ModulesManagement() {
                                             <SelectItem value="ALL_CLASSES">Semua Kelas</SelectItem>
                                             {classes.map((cls) => (
                                                 <SelectItem key={cls.id} value={cls.id}>
-                                                    {cls.name} (Tingkat {cls.grade})
+                                                    {cls.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

@@ -47,6 +47,7 @@ export function FoundersSection({ content }: FoundersSectionProps) {
                                                 src={founder.image}
                                                 alt={founder.name}
                                                 fill
+                                                sizes="160px"
                                                 className="object-cover"
                                                 onError={(e) => {
                                                     // Fallback to placeholder if image fails to load

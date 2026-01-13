@@ -123,7 +123,7 @@ export default function RDIFoundersEditor() {
                     role: '',
                     vision: '',
                     quote: '',
-                    image: '/images/founder-placeholder.jpg',
+                    image: '/images/founder-placeholder.svg',
                 }
             ]
         });

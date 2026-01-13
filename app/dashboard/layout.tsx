@@ -1,6 +1,11 @@
 ﻿import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { NavigationControls } from '@/components/navigation-controls';
+import dynamic from 'next/dynamic';
+
+const NavigationControls = dynamic(
+    () => import('@/components/navigation-controls').then(mod => ({ default: mod.NavigationControls })),
+    { ssr: false }
+);
 
 export default async function DashboardLayout({
     children,

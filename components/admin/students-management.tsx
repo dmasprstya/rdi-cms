@@ -32,7 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { UserPlus, Search, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { UserPlus, Search, Pencil, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Student {
@@ -90,6 +90,7 @@ export function StudentsManagement() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [formData, setFormData] = useState<StudentFormData>(initialFormData);
     const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
     const { toast } = useToast();
 
     const fetchStudents = useCallback(async () => {
@@ -395,16 +396,25 @@ export function StudentsManagement() {
                                     <Label htmlFor="password" className="text-right text-foreground">
                                         Password <span className="text-destructive">*</span>
                                     </Label>
-                                    <Input
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        className="col-span-3"
-                                        placeholder="Password untuk login"
-                                        required
-                                    />
+                                    <div className="col-span-3 relative">
+                                        <Input
+                                            id="password"
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            className="pr-10"
+                                            placeholder="Password untuk login"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="classId" className="text-right text-foreground">
@@ -417,7 +427,7 @@ export function StudentsManagement() {
                                         <SelectContent>
                                             {classes.map((cls) => (
                                                 <SelectItem key={cls.id} value={cls.id}>
-                                                    {cls.name} - Kelas {cls.grade} ({cls.academicYear})
+                                                    {cls.name} ({cls.academicYear})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -662,6 +672,29 @@ export function StudentsManagement() {
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="edit-password" className="text-right text-foreground">
+                                    Password
+                                </Label>
+                                <div className="col-span-3 relative">
+                                    <Input
+                                        id="edit-password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        className="pr-10"
+                                        placeholder="Kosongkan jika tidak ingin mengubah"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="edit-classId" className="text-right text-foreground">
                                     Kelas
                                 </Label>
@@ -672,7 +705,7 @@ export function StudentsManagement() {
                                     <SelectContent>
                                         {classes.map((cls) => (
                                             <SelectItem key={cls.id} value={cls.id}>
-                                                {cls.name} - Kelas {cls.grade} ({cls.academicYear})
+                                                {cls.name} ({cls.academicYear})
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
