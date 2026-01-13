@@ -11,7 +11,6 @@ async function seed() {
             .insert(classes)
             .values({
                 name: 'X-A',
-                grade: 10,
                 academicYear: '2023/2024',
             })
             .returning();

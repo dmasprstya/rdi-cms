@@ -149,7 +149,10 @@ async function seedModules() {
                 // Find class by grade (if specified)
                 let targetClass = null;
                 if (moduleData.classGrade !== null) {
-                    targetClass = allClasses.find(c => c.grade === moduleData.classGrade);
+                    // Since 'grade' field doesn't exist in schema, match by class name pattern
+                    // Class names follow pattern like "10-A", "11-A", "12-B", etc.
+                    const gradePattern = `${moduleData.classGrade}-`;
+                    targetClass = allClasses.find(c => c.name.startsWith(gradePattern));
                     if (!targetClass) {
                         console.log(`⚠️ Skipping module "${moduleData.title}" - class grade ${moduleData.classGrade} not found`);
                         skipCount++;

@@ -39,9 +39,9 @@ async function seedGuruRBAC() {
         console.log('2️⃣  Creating classes...');
         // Insert classes
         await db.insert(classes).values([
-            { id: 'class-10a', name: '10-A', grade: 10, academicYear: '2024/2025' },
-            { id: 'class-10b', name: '10-B', grade: 10, academicYear: '2024/2025' },
-            { id: 'class-11a', name: '11-A', grade: 11, academicYear: '2024/2025' },
+            { id: 'class-10a', name: '10-A', academicYear: '2024/2025' },
+            { id: 'class-10b', name: '10-B', academicYear: '2024/2025' },
+            { id: 'class-11a', name: '11-A', academicYear: '2024/2025' },
         ]).onConflictDoNothing();
 
         console.log('3️⃣  Assigning classes to guru...');
