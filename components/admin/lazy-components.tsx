@@ -98,7 +98,7 @@ export const LazyDashboardStats = dynamic(
 
 // ============ GURU COMPONENTS ============
 export const LazyGuruGradeInput = dynamic(
-    () => import('@/components/guru/grade-input').then((mod) => ({ default: mod.GradeInputManagement })),
+    () => import('@/components/guru/grade-input'),
     {
         loading: () => <PageLoader />,
         ssr: false,
@@ -106,7 +106,7 @@ export const LazyGuruGradeInput = dynamic(
 );
 
 export const LazyGuruModulesManagement = dynamic(
-    () => import('@/components/guru/modules-management').then((mod) => ({ default: mod.ModulesManagement })),
+    () => import('@/components/guru/modules-management'),
     {
         loading: () => <PageLoader />,
         ssr: false,
@@ -114,7 +114,7 @@ export const LazyGuruModulesManagement = dynamic(
 );
 
 export const LazyGuruAnnouncementsManagement = dynamic(
-    () => import('@/components/guru/announcements-management').then((mod) => ({ default: mod.AnnouncementsManagement })),
+    () => import('@/components/guru/announcements-management'),
     {
         loading: () => <CompactLoader />,
         ssr: false,
