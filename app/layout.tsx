@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   description: "Solusi digital terpadu untuk manajemen sekolah. Kelola data siswa, nilai akademik, jadwal, dan analytics dengan sistem terintegrasi yang efisien dan user-friendly.",
   keywords: ["sistem sekolah", "manajemen sekolah", "platform pendidikan", "sistem akademik", "manajemen siswa", "sistem informasi sekolah"],
   authors: [{ name: "STS System Team" }],
+  icons: {
+    icon: "/logos/rdi-logo.png",
+    shortcut: "/logos/rdi-logo.png",
+    apple: "/logos/rdi-logo.png",
+  },
   openGraph: {
     title: "Rosman Djohan Institute",
     description: "Solusi digital terpadu untuk manajemen sekolah. Kelola data siswa, nilai akademik, jadwal, dan analytics dengan sistem terintegrasi.",
