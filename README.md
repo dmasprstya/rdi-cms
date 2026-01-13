@@ -1,14 +1,16 @@
-# Sistem Terintegrasi Sekolah
+# Sistem Terintegrasi RDI (Rosman Djohan Institute)
 
-Platform manajemen sekolah modern dengan role-based access control untuk admin, staff, dan siswa.
+Platform manajemen terpadu untuk lembaga pendidikan dengan role-based access control untuk admin, staff, guru, siswa, dan editor. Dilengkapi dengan CMS untuk landing page dan sistem manajemen sekolah lengkap.
 
 ## 🚀 Teknologi
 
 - **Frontend**: Next.js 14 (App Router), React, TypeScript
-- **Styling**: Tailwind CSS, Shadcn UI
+- **Styling**: Tailwind CSS, Shadcn UI, Glassmorphism design
 - **Database**: PostgreSQL (via Supabase)
 - **ORM**: Drizzle ORM
-- **Authentication**: Auth.js (NextAuth.js v5)  
+- **Authentication**: Auth.js (NextAuth.js v5)
+- **Error Tracking**: Sentry
+- **Notifications**: React Toastify
 - **Deployment**: Vercel
 
 ## 📦 Instalasi
@@ -86,65 +88,108 @@ Buka [http://localhost:3000](http://localhost:3000)
 
 Setelah setup database dan create user, gunakan:
 
-**Admin/Staff:**
+**Admin:**
 - Email: admin@sekolah.com
 - Password: admin123
+
+**Staff:**
+- Email: staff@sekolah.com
+- Password: staff123
+
+**Guru:**
+- Email: guru@sekolah.com
+- Password: guru123
 
 **Siswa:**
 - Email: siswa@sekolah.com  
 - Password: siswa123
+
+**Editor:**
+- Email: editor@sekolah.com
+- Password: editor123
 
 *(Pastikan sudah create users ini di database)*
 
 ## 📁 Struktur Project
 
 ```
-sistem-terintegrasi/
+sistem-terintegrasi-rdi/
 ├── app/                      # Next.js App Router
-├── api/                  # API Routes
-├── dashboard/            # Admin/Staff Dashboard
-├── student/              # Student Portal
-├── login/                # Login Page
-└── layout.tsx            # Root Layout
+│   ├── api/                  # API Routes (admin, guru, staff, student)
+│   ├── dashboard/            # Admin Dashboard
+│   ├── guru/                 # Guru Dashboard (modules, grades, announcements)
+│   ├── staff/                # Staff Dashboard (students, teachers, subjects)
+│   ├── student/              # Student Portal
+│   ├── editor/               # CMS Editor Dashboard
+│   ├── berita/               # News/Berita pages
+│   ├── program/              # Program pages (dropdown menu)
+│   ├── [slug]/               # Dynamic homepage
+│   ├── login/                # Login Page
+│   └── page.tsx              # RDI Landing Page
 ├── components/
-└── ui/                   # Shadcn UI Components
+│   ├── admin/                # Admin components (classes, students, teachers, staff)
+│   ├── guru/                 # Guru components (modules, grades, announcements)
+│   └── ui/                   # Shadcn UI Components
 ├── db/
-├── schema.ts             # Database Schema
-└── index.ts              # DB Connection
+│   ├── schema.ts             # Database Schema (14 tables)
+│   └── index.ts              # DB Connection
 ├── lib/
-├── utils.ts              # Utility Functions
-└── validations.ts        # Zod Schemas
+│   ├── utils.ts              # Utility Functions
+│   └── validations.ts        # Zod Schemas
 ├── auth.ts                   # Auth.js Configuration
-├── middleware.ts             # Route Protection
+├── middleware.ts             # Route Protection (role-based)
 └── drizzle.config.ts         # Drizzle Configuration
 ```
 
-## ✨ Fitur
+## ✨ Fitur Utama
 
-### Admin/Staff Dashboard
+### Admin Dashboard (`/dashboard`)
 - ✅ Login dengan role-based access
-- ✅ Dashboard dengan statistik
-- ✅ Kelola data siswa
-- 🚧 Kelola data guru
-- 🚧 Kelola kelas & mata pelajaran
-- 🚧 Input & kelola nilai
-- 🚧 Atur jadwal pelajaran
-- 🚧 Buat pengumuman
+- ✅ Dashboard dengan statistik real-time
+- ✅ Kelola Data Siswa (CRUD, class assignment)
+- ✅ Kelola Data Guru (CRUD, NIP management)
+- ✅ Kelola Kelas (CRUD, academic year)
+- ✅ Kelola Staff (CRUD, phone & address)
+- ✅ Kelola Mata Pelajaran (assign subjects to classes)
+- ✅ View grades, modules, announcements
 
-### Student Portal
+### Guru Dashboard (`/guru`)
+- ✅ Dashboard dengan statistik guru
+- ✅ Kelola Modul Pembelajaran (PDF upload support)
+- ✅ Input Nilai (3-step wizard: class → subject → grades)
+- ✅ Buat Pengumuman
+- ✅ Kelola Mata Pelajaran (untuk guru)
+- ✅ Akses hanya untuk kelas yang diajar
+
+### Staff Dashboard (`/staff`)
+- ✅ Dashboard dengan statistik staff
+- ✅ Lihat Data Siswa
+- ✅ Lihat Data Guru
+- ✅ Kelola Mata Pelajaran (subject-class assignments)
+
+### Student Portal (`/student`)
 - ✅ Login sebagai siswa
 - ✅ Lihat profil pribadi
-- ✅ Lihat nilai akademik
-- 🚧 Lihat jadwal pelajaran
+- ✅ Lihat nilai akademik (semua mata pelajaran)
+- ✅ Lihat jadwal pelajaran
+- ✅ Lihat & download modul pembelajaran
 - ✅ Lihat pengumuman
+
+### Editor CMS (`/editor`)
+- ✅ Manage Landing Page content
+- ✅ Manage dropdown menu (Program Luar Negeri, HALTEC)
+- ✅ Manage Berita/News (CRUD with images)
+- ✅ Rich text editor dengan media upload
 
 ### Fitur Tambahan
 - ✅ Dark mode support
 - ✅ Glassmorphism design
 - ✅ Responsive mobile-friendly
 - ✅ Toast notifications
-- 🚧 CSV import/export
-- 🚧 PDF reports
+- ✅ PDF file upload for modules
+- ✅ Performance indexes (27 indexes)
+- ✅ Error tracking dengan Sentry
+- ✅ Code-splitting dengan React.lazy
 
 ### 🌟 RDI Landing Page (NEW!)
 - ✅ **Public Landing Page** untuk Rosman Djohan Institute
@@ -215,28 +260,106 @@ npm start
 
 # Linting
 npm run lint
+
+# Apply performance indexes
+npm run db:indexes
 ```
 
-## 🚀 Deployment
+## �️ Database Schema
+
+### Main Tables (14 total)
+
+1. **users** - Authentication & user management
+   - Roles: admin, staff, guru, student, editor
+   - Fields: name, email, password, phone, address
+
+2. **students** - Student profiles
+   - Links to: users, classes
+   - Fields: NIS, photoUrl, dateOfBirth
+
+3. **teachers** - Teacher/Guru profiles
+   - Links to: users
+   - Fields: NIP, subject, dateOfBirth
+
+4. **classes** - Class management
+   - Fields: name, academicYear
+
+5. **subjects** - Subject/Mata Pelajaran
+   - Fields: name, code, credits, description
+
+6. **grades** - Student grades
+   - Links to: students, subjects, classes, teachers
+   - Fields: score (0-100), semester, academicYear, remarks
+
+7. **schedules** - Class schedules
+   - Links to: classes, subjects, teachers
+   - Fields: day, startTime, endTime, room
+
+8. **announcements** - School announcements
+   - Links to: users (author)
+   - Fields: title, content, isActive
+
+9. **modules** - Learning modules
+   - Links to: subjects, classes, teachers
+   - Fields: title, content, fileUrl, fileName, fileSize, isPublished
+
+### Junction Tables
+
+10. **guru_kelas** - Teacher ↔ Classes (many-to-many)
+11. **kelas_mata_pelajaran** - Classes ↔ Subjects (many-to-many)
+
+### CMS Tables
+
+12. **landing_page_content** - Homepage content (JSON)
+13. **dropdown_menu** - Dynamic program pages
+14. **news** - News/Berita articles
+15. **news_images** - News article images
+16. **hero_images** - Hero slideshow images
+
+## �🚀 Deployment
 
 ### Deploy to Vercel
 
 1. Push code to GitHub
 2. Import project di [vercel.com](https://vercel.com)
 3. Set environment variables di Vercel:
-   - `DATABASE_URL`
-   - `NEXTAUTH_URL` (your-app.vercel.app)
-   - `NEXTAUTH_SECRET`
-   - `NEXT_PUBLIC_APP_URL`
+   - `DATABASE_URL` - PostgreSQL connection string
+   - `NEXTAUTH_URL` - https://your-app.vercel.app
+   - `NEXTAUTH_SECRET` - Random 32+ character string
+   - `NEXT_PUBLIC_APP_URL` - https://your-app.vercel.app
+   - `SENTRY_DSN` (optional) - For error tracking
+   - `SENTRY_AUTH_TOKEN` (optional) - For Sentry uploads
 4. Deploy!
+
+### Production Checklist
+- ✅ Database migrations applied
+- ✅ Environment variables configured
+- ✅ Initial admin user created
+- ✅ Performance indexes applied (`npm run db:indexes`)
+- ✅ File upload directory writable (`/uploads`)
+- ✅ Test all role-based access
 
 ## 📝 Notes
 
-- Database schema sudah include semua tabel yang dibutuhkan
-- Middleware sudah handle role-based routing
-- Semua protected routes sudah di-guard
-- Authentication menggunakan JWT strategy
-- Password di-hash menggunakan bcrypt
+### System Capabilities
+- **5 User Roles** dengan permissions berbeda
+- **14+ Database Tables** dengan foreign key constraints
+- **27 Performance Indexes** untuk query optimization
+- **Role-Based Access Control (RBAC)** di semua endpoints
+- **PDF Upload** untuk modul pembelajaran
+- **CMS Integration** untuk landing page RDI
+- **Real-time Statistics** di semua dashboards
+- **Error Tracking** dengan Sentry integration
+- **Code-Splitting** untuk optimal performance
+
+### Security Features
+- Middleware untuk route protection
+- Session-based authentication dengan Auth.js
+- Password hashing dengan bcrypt
+- SQL injection prevention dengan Drizzle ORM
+- File upload validation
+- CSRF protection
+- Input sanitization
 
 ## 🎨 Design Features
 
