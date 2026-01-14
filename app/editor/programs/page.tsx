@@ -13,6 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save, Eye, Loader2, Plus, Trash2, Upload, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+// CTA text validation
+const validateCTAText = (text: string): string | null => {
+    if (text.trim().length === 0) {
+        return "Text tidak boleh kosong";
+    }
+    if (text.length > 50) {
+        return "Text terlalu panjang (max 50 karakter)";
+    }
+    return null;
+};
+
 // Import only types, not runtime code
 type ProgramCategory = {
     id: string;
@@ -36,7 +47,9 @@ type ProgramItem = {
     featuredImage: string;
     keyFeatures: string[];
     ctaButtonText: string;
+    ctaButtonTextDetail?: string;
     ctaButtonLink: string;
+    ctaButtonLinkDetail?: string;
     order: number;
     metadata?: {
         duration?: string;
@@ -220,8 +233,10 @@ export default function ProgramsEditor() {
             fullDescription: '',
             featuredImage: '/images/programs/placeholder.svg',
             keyFeatures: ['Feature 1'],
-            ctaButtonText: 'Daftar Program →',
+            ctaButtonText: 'Lihat Program →',
+            ctaButtonTextDetail: 'Daftar Program →',
             ctaButtonLink: '',
+            ctaButtonLinkDetail: '',
             order: content.items.length + 1,
         };
         setContent({ ...content, items: [...content.items, newItem] });
@@ -730,22 +745,68 @@ export default function ProgramsEditor() {
                                         )}
                                     </div>
 
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>CTA Button Text</Label>
-                                            <Input
-                                                value={item.ctaButtonText}
-                                                onChange={(e) => updateItem(item.id, 'ctaButtonText', e.target.value)}
-                                                placeholder="Daftar Program →"
-                                            />
+                                    <div className="space-y-4">
+                                        {/* CTA for Card */}
+                                        <div>
+                                            <Label className="text-sm font-semibold mb-3 block">CTA untuk Halaman Utama (Card)</Label>
+                                            <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`cta-card-text-${item.id}`} className="text-xs">
+                                                        Button Text
+                                                    </Label>
+                                                    <Input
+                                                        id={`cta-card-text-${item.id}`}
+                                                        value={item.ctaButtonText}
+                                                        onChange={(e) => updateItem(item.id, 'ctaButtonText', e.target.value)}
+                                                        placeholder="Lihat Program →"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`cta-card-link-${item.id}`} className="text-xs">
+                                                        Button Link
+                                                    </Label>
+                                                    <Input
+                                                        id={`cta-card-link-${item.id}`}
+                                                        value={item.ctaButtonLink}
+                                                        onChange={(e) => updateItem(item.id, 'ctaButtonLink', e.target.value)}
+                                                        placeholder="/program/kategori/item"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>CTA Button Link</Label>
-                                            <Input
-                                                value={item.ctaButtonLink}
-                                                onChange={(e) => updateItem(item.id, 'ctaButtonLink', e.target.value)}
-                                                placeholder="/program/kategori/item"
-                                            />
+
+                                        {/* CTA for Detail Page */}
+                                        <div>
+                                            <Label className="text-sm font-semibold mb-3 block">CTA untuk Halaman Detail</Label>
+                                            <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`cta-detail-text-${item.id}`} className="text-xs">
+                                                        Button Text
+                                                    </Label>
+                                                    <Input
+                                                        id={`cta-detail-text-${item.id}`}
+                                                        value={item.ctaButtonTextDetail || ''}
+                                                        onChange={(e) => updateItem(item.id, 'ctaButtonTextDetail', e.target.value)}
+                                                        placeholder="Daftar Program →"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`cta-detail-link-${item.id}`} className="text-xs">
+                                                        Button Link
+                                                        <span className="text-muted-foreground ml-2 font-normal">
+                                                            (Form, WhatsApp, dll)
+                                                        </span>
+                                                    </Label>
+                                                    <Input
+                                                        id={`cta-detail-link-${item.id}`}
+                                                        value={item.ctaButtonLinkDetail || ''}
+                                                        onChange={(e) => updateItem(item.id, 'ctaButtonLinkDetail', e.target.value)}
+                                                        placeholder="https://wa.me/... atau /form"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>

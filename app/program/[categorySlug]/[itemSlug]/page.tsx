@@ -222,8 +222,10 @@ export default async function ItemPage({ params }: ItemPageProps) {
                             {/* CTA */}
                             <div className="pt-6 border-t">
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-                                        {item.ctaButtonText}
+                                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" asChild>
+                                        <a href={item.ctaButtonLinkDetail || item.ctaButtonLink} target={item.ctaButtonLinkDetail?.startsWith('http') ? '_blank' : undefined} rel={item.ctaButtonLinkDetail?.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                                            {item.ctaButtonTextDetail || item.ctaButtonText}
+                                        </a>
                                     </Button>
                                     <Button size="lg" variant="outline" asChild>
                                         <a href={`/program/${category.slug}`}>

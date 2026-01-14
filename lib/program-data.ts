@@ -8,6 +8,12 @@ import { landingPageContent } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 
+// Default CTA button texts
+export const DEFAULT_CTA = {
+    card: "Lihat Program →",
+    detail: "Daftar Program →"
+} as const;
+
 // TypeScript interfaces for Program content
 export interface ProgramCategory {
     id: string;
@@ -31,7 +37,9 @@ export interface ProgramItem {
     featuredImage: string;
     keyFeatures: string[];
     ctaButtonText: string;
+    ctaButtonTextDetail?: string;
     ctaButtonLink: string;
+    ctaButtonLinkDetail?: string;
     order: number;
     metadata?: {
         duration?: string;
@@ -57,6 +65,21 @@ export function generateSlug(title: string): string {
         .replace(/[^a-z0-9-]/g, '')
         .replace(/-+/g, '-')
         .trim();
+}
+
+/**
+ * Migrate old program item data to new format
+ * Ensures backward compatibility with old data structure
+ */
+export function migrateProgramItem(item: any): ProgramItem {
+    return {
+        ...item,
+        ctaButtonText: item.ctaButtonText || DEFAULT_CTA.card,
+        ctaButtonTextDetail: item.ctaButtonTextDetail || DEFAULT_CTA.detail,
+        // Keep existing link, or use it for both if no detail link specified
+        ctaButtonLink: item.ctaButtonLink || '',
+        ctaButtonLinkDetail: item.ctaButtonLinkDetail || item.ctaButtonLink || '',
+    };
 }
 
 // Default program content
@@ -116,8 +139,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Jaminan sosial lengkap (asuransi kesehatan & pensiun)',
                 'Peluang perpanjangan visa',
             ],
-            ctaButtonText: 'Daftar Program Jepang →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Program Jepang →',
             ctaButtonLink: '/program/pelatihan-kerja/jepang',
+            ctaButtonLinkDetail: '#', // User can set custom link (e.g., form or WhatsApp)
             order: 1,
             metadata: {
                 duration: '1-5 Tahun',
@@ -154,8 +179,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Lingkungan kerja modern',
                 'Peluang belajar bahasa Mandarin',
             ],
-            ctaButtonText: 'Daftar Program Taiwan →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Program Taiwan →',
             ctaButtonLink: '/program/pelatihan-kerja/taiwan',
+            ctaButtonLinkDetail: '#',
             order: 2,
             metadata: {
                 duration: '3 Tahun',
@@ -191,8 +218,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Durasi pelatihan 3 tahun',
                 'Asuransi kesehatan penuh',
             ],
-            ctaButtonText: 'Daftar Program Jerman →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Program Jerman →',
             ctaButtonLink: '/program/pelatihan-kerja/jerman',
+            ctaButtonLinkDetail: '#',
             order: 3,
             metadata: {
                 duration: '3 Tahun',
@@ -229,8 +258,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Materi dari praktisi berpengalaman',
                 'Studi kasus nyata dari industri',
             ],
-            ctaButtonText: 'Daftar Pelatihan →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Pelatihan →',
             ctaButtonLink: '/program/pelatihan-motivasi/service-excellent',
+            ctaButtonLinkDetail: '#',
             order: 1,
             metadata: {
                 duration: '2-3 Hari',
@@ -253,8 +284,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Komunikasi dalam tim',
                 'Handling difficult conversations',
             ],
-            ctaButtonText: 'Daftar Pelatihan →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Pelatihan →',
             ctaButtonLink: '/program/pelatihan-motivasi/communication-excellent',
+            ctaButtonLinkDetail: '#',
             order: 2,
             metadata: {
                 duration: '2-3 Hari',
@@ -277,8 +310,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Emotional intelligence untuk leader',
                 'Coaching dan mentoring skills',
             ],
-            ctaButtonText: 'Daftar Pelatihan →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Pelatihan →',
             ctaButtonLink: '/program/pelatihan-motivasi/leadership-excellent',
+            ctaButtonLinkDetail: '#',
             order: 3,
             metadata: {
                 duration: '2-3 Hari',
@@ -302,8 +337,10 @@ const DEFAULT_PROGRAMS: ProgramsContent = {
                 'Durasi kuliah 4 tahun (S1)',
                 'Visa pelajar dengan izin kerja',
             ],
-            ctaButtonText: 'Daftar Program Beasiswa →',
+            ctaButtonText: DEFAULT_CTA.card,
+            ctaButtonTextDetail: 'Daftar Program Beasiswa →',
             ctaButtonLink: '/program/kuliah-beasiswa/taiwan',
+            ctaButtonLinkDetail: '#',
             order: 1,
             metadata: {
                 duration: '4 Tahun (S1)',
@@ -343,7 +380,12 @@ export async function fetchProgramsContent(): Promise<ProgramsContent | null> {
                 });
 
                 if (content && content.content) {
-                    return content.content as ProgramsContent;
+                    const programsContent = content.content as ProgramsContent;
+                    // Migrate items to ensure backward compatibility
+                    return {
+                        ...programsContent,
+                        items: programsContent.items.map(migrateProgramItem)
+                    };
                 }
 
                 return null;
