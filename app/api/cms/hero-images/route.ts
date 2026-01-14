@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth'; // NextAuth v5
 import { db } from '@/db';
 import { heroImages } from '@/db/schema';
-import { eq, asc, desc } from 'drizzle-orm';
+import { eq, asc } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
 import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs/promises';
+import { put } from '@vercel/blob';
 import { rateLimit } from '@/lib/rate-limit';
 
 // Constants
@@ -127,32 +126,31 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create directory if not exists
-        const uploadDir = path.join(process.cwd(), 'public', 'media', 'hero');
-        await fs.mkdir(uploadDir, { recursive: true });
-
-        // Compress and resize
-        const filename = `${Date.now()}-${file.name.replace(/\.[^/.]+$/, '')}.webp`;
-        const outputPath = path.join(uploadDir, filename);
-
-        await sharp(buffer)
+        // Compress and resize image in memory
+        const processedBuffer = await sharp(buffer)
             .resize(1920, 1080, {
                 fit: 'cover',
                 position: 'center'
             })
             .webp({ quality: 85 })
-            .toFile(outputPath);
+            .toBuffer();
+
+        // Upload to Vercel Blob Storage
+        const filename = `hero-${Date.now()}-${file.name.replace(/\.[^/.]+$/, '')}.webp`;
+        const blob = await put(filename, processedBuffer, {
+            access: 'public',
+            contentType: 'image/webp',
+        });
 
         // Calculate next order
         const maxOrder = currentImages.length > 0
             ? Math.max(...currentImages.map(img => img.order))
             : -1;
 
-        // Insert into database
-        const imageUrl = `/media/hero/${filename}`;
+        // Insert into database with blob URL
         const [newImage] = await db.insert(heroImages).values({
             sectionId: 'rdi-hero',
-            imageUrl,
+            imageUrl: blob.url,
             altText: altText.trim(),
             order: maxOrder + 1
         }).returning();
@@ -162,8 +160,9 @@ export async function POST(request: NextRequest) {
             userId: session.user.id,
             userEmail: session.user.email,
             filename,
+            blobUrl: blob.url,
             originalSize: file.size,
-            compressedPath: outputPath,
+            processedSize: processedBuffer.length,
             dimensions: `${metadata.width}x${metadata.height}`,
             imageId: newImage.id,
             timestamp: new Date().toISOString()
@@ -183,8 +182,8 @@ export async function POST(request: NextRequest) {
         console.error('[HERO_UPLOAD_ERROR]', {
             error: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
-            userId: session.user.id,
-            userEmail: session.user.email,
+            userId: session?.user?.id,
+            userEmail: session?.user?.email,
             timestamp: new Date().toISOString()
         });
 

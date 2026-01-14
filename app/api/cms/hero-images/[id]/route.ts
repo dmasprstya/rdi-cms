@@ -4,8 +4,7 @@ import { db } from '@/db';
 import { heroImages } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
-import path from 'path';
-import fs from 'fs/promises';
+import { del } from '@vercel/blob';
 
 // DELETE: Remove hero image
 export async function DELETE(
@@ -39,13 +38,12 @@ export async function DELETE(
         // Delete from database
         await db.delete(heroImages).where(eq(heroImages.id, id));
 
-        // Delete file from filesystem
+        // Delete file from Blob Storage
         try {
-            const filePath = path.join(process.cwd(), 'public', image.imageUrl);
-            await fs.unlink(filePath);
+            await del(image.imageUrl);
         } catch (fileError) {
-            console.warn('[HERO_IMAGE_FILE_DELETE_WARNING]', {
-                message: 'File delete failed but database record removed',
+            console.warn('[HERO_IMAGE_BLOB_DELETE_WARNING]', {
+                message: 'Blob delete failed but database record removed',
                 imageUrl: image.imageUrl,
                 error: fileError instanceof Error ? fileError.message : 'Unknown error'
             });
