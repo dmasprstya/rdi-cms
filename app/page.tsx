@@ -7,6 +7,7 @@ import { FoundersSection } from "@/components/rdi/founders-section";
 import { LatestNewsSection } from "@/components/rdi/latest-news-section";
 import { CTASection } from "@/components/rdi/cta-section";
 import { FooterRDI } from "@/components/rdi/footer-rdi";
+import { BackToTopButton } from "@/components/rdi/back-to-top-button";
 import {
     getHeroContent,
     getHeroImages,
@@ -110,6 +111,7 @@ export default async function RDILandingPage() {
             <LatestNewsSection content={latestNewsContent} />
             <CTASection content={ctaContent || defaultCTA} />
             <FooterRDI />
+            <BackToTopButton />
         </main>
     );
 }
