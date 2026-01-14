@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { put } from '@vercel/blob';
 
 // Video upload endpoint
 export async function POST(request: NextRequest) {
@@ -41,39 +39,30 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Create upload directory if it doesn't exist
-        const uploadDir = join(process.cwd(), 'public', 'videos');
-        if (!existsSync(uploadDir)) {
-            mkdirSync(uploadDir, { recursive: true });
-        }
-
         // Generate unique filename
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
         const timestamp = Date.now();
         const ext = file.name.split('.').pop() || 'mp4';
         const filename = `hero-${timestamp}.${ext}`;
-        const filepath = join(uploadDir, filename);
+        const pathname = `videos/${filename}`;
 
-        // Write file
-        await writeFile(filepath, buffer);
-
-        // Return the public URL
-        const publicUrl = `/videos/${filename}`;
+        // Upload to Vercel Blob
+        const blob = await put(pathname, file, {
+            access: 'public',
+            addRandomSuffix: false,
+        });
 
         console.log('[VIDEO_UPLOAD_SUCCESS]', {
             userId: session.user.id,
             filename,
             size: file.size,
             type: file.type,
-            url: publicUrl,
+            url: blob.url,
             timestamp: new Date().toISOString()
         });
 
         return NextResponse.json({
             success: true,
-            url: publicUrl,
+            url: blob.url,
             filename: filename
         });
 

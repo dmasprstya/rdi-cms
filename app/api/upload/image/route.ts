@@ -1,11 +1,7 @@
-'use server';
-
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { existsSync, mkdirSync } from "fs";
+import { put } from '@vercel/blob';
 
-// Type mapping for upload directories
+// Type mapping for upload directories (used as prefixes in blob storage)
 const UPLOAD_DIRS = {
     logo: 'logos',
     hero: 'media/hero',
@@ -59,31 +55,23 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Create upload directory if it doesn't exist
-        const uploadDir = join(process.cwd(), 'public', UPLOAD_DIRS[uploadType]);
-        if (!existsSync(uploadDir)) {
-            mkdirSync(uploadDir, { recursive: true });
-        }
-
-        // Generate unique filename
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // Use original filename with timestamp to avoid conflicts
+        // Generate unique filename with path prefix
         const timestamp = Date.now();
         const originalName = file.name.replace(/\s+/g, '-').toLowerCase();
         const filename = `${timestamp}-${originalName}`;
-        const filepath = join(uploadDir, filename);
+        const pathname = `${UPLOAD_DIRS[uploadType]}/${filename}`;
 
-        // Write file
-        await writeFile(filepath, buffer);
+        // Upload to Vercel Blob
+        const blob = await put(pathname, file, {
+            access: 'public',
+            addRandomSuffix: false, // We already have timestamp in filename
+        });
 
-        // Return the public URL
-        const publicUrl = `/${UPLOAD_DIRS[uploadType]}/${filename}`;
+        console.log(`✓ File uploaded to Blob: ${blob.url}`);
 
         return NextResponse.json({
             success: true,
-            url: publicUrl,
+            url: blob.url,
             filename: filename,
             type: isVideo ? 'video' : 'image'
         });

@@ -1,9 +1,5 @@
-'use server';
-
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { existsSync, mkdirSync } from "fs";
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
     try {
@@ -25,31 +21,23 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Create logos directory if it doesn't exist
-        const logosDir = join(process.cwd(), 'public', 'logos');
-        if (!existsSync(logosDir)) {
-            mkdirSync(logosDir, { recursive: true });
-        }
-
         // Generate unique filename
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // Use original filename with timestamp to avoid conflicts
         const timestamp = Date.now();
         const originalName = file.name.replace(/\s+/g, '-').toLowerCase();
         const filename = `${timestamp}-${originalName}`;
-        const filepath = join(logosDir, filename);
+        const pathname = `logos/${filename}`;
 
-        // Write file
-        await writeFile(filepath, buffer);
+        // Upload to Vercel Blob
+        const blob = await put(pathname, file, {
+            access: 'public',
+            addRandomSuffix: false,
+        });
 
-        // Return the public URL
-        const publicUrl = `/logos/${filename}`;
+        console.log(`✓ Logo uploaded to Blob: ${blob.url}`);
 
         return NextResponse.json({
             success: true,
-            url: publicUrl,
+            url: blob.url,
             filename: filename
         });
 

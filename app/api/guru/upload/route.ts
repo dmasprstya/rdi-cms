@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { writeFile } from 'fs/promises';
+import { put } from '@vercel/blob';
 import {
-    generateUniqueFilename,
-    ensureDirectoryExists,
     validatePDFBuffer,
-    getFilePathFromId,
 } from '@/lib/file-utils';
-import path from 'path';
 
 // Rate limiting storage (in-memory)
 // For production with multiple instances, use Redis
@@ -108,22 +104,23 @@ export async function POST(req: NextRequest) {
         }
 
         // 8. Generate unique filename
-        const uniqueFilename = generateUniqueFilename(file.name, session.user.id);
+        const timestamp = Date.now();
+        const sanitizedName = file.name.replace(/\s+/g, '-').toLowerCase();
+        const uniqueFilename = `${timestamp}-${session.user.id}-${sanitizedName}`;
+        const pathname = `uploads/modules/${uniqueFilename}`;
 
-        // 9. Ensure upload directory exists
-        const uploadDir = path.join(process.cwd(), 'uploads', 'modules');
-        await ensureDirectoryExists(uploadDir);
+        // 9. Upload to Vercel Blob
+        const blob = await put(pathname, file, {
+            access: 'public',
+            addRandomSuffix: false,
+        });
 
-        // 10. Save file
-        const filePath = path.join(uploadDir, uniqueFilename);
-        await writeFile(filePath, buffer);
+        console.log(`✓ PDF uploaded to Blob: ${blob.url} (${file.size} bytes)`);
 
-        console.log(`✓ File uploaded: ${uniqueFilename} (${file.size} bytes)`);
-
-        // 11. Return file metadata
+        // 10. Return file metadata
         return NextResponse.json(
             {
-                fileUrl: `/api/guru/files/${uniqueFilename}`,
+                fileUrl: blob.url,
                 fileName: file.name,
                 fileSize: file.size,
                 message: 'File berhasil diupload',
