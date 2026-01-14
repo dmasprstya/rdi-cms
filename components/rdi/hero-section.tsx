@@ -8,6 +8,7 @@ import { ArrowDown, Pause, Play, Calendar } from "lucide-react";
 import { HeroContent, HeroImage, NewsItem } from "@/lib/rdi-data";
 import Image from "next/image";
 import Link from "next/link";
+import { ReadMoreText } from "@/components/rdi/read-more-text";
 
 interface HeroSectionProps {
     content: HeroContent;
@@ -258,9 +259,7 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
                                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 sm:mb-3 md:mb-4">
                                     {content.aboutTitle}
                                 </h2>
-                                <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed text-justify">
-                                    {content.aboutDescription}
-                                </p>
+                                <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
                     </div>
@@ -346,13 +345,11 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
 
                         {/* Bottom: Sekilas Tentang - Separate with its own background */}
                         {content.aboutTitle && content.aboutDescription && (
-                            <div className="bg-background py-4 sm:py-6 md:py-">
+                            <div className="bg-background py-4 sm:py-6 md:py-8">
                                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 sm:mb-3 md:mb-4">
                                     {content.aboutTitle}
                                 </h2>
-                                <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed text-justify">
-                                    {content.aboutDescription}
-                                </p>
+                                <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
                     </div>
@@ -442,9 +439,7 @@ function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { con
                                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 sm:mb-3 md:mb-4">
                                     {content.aboutTitle}
                                 </h2>
-                                <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed text-justify">
-                                    {content.aboutDescription}
-                                </p>
+                                <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
                     </div>
@@ -522,9 +517,7 @@ function DefaultHeroLayout({ content, scrollToPrograms, newsItems }: { content: 
                                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 sm:mb-3 md:mb-4">
                                     {content.aboutTitle}
                                 </h2>
-                                <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed text-justify">
-                                    {content.aboutDescription}
-                                </p>
+                                <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
                     </div>
