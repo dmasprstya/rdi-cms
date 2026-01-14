@@ -502,6 +502,8 @@ export function StudentsManagement() {
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <input
+                                id="searchStudents"
+                                name="searchStudents"
                                 type="text"
                                 placeholder="Cari siswa berdasarkan nama, NIS, atau email..."
                                 value={searchQuery}
@@ -510,6 +512,8 @@ export function StudentsManagement() {
                             />
                         </div>
                         <select
+                            id="filterClass"
+                            name="filterClass"
                             value={filterClass}
                             onChange={(e) => setFilterClass(e.target.value)}
                             className="px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-yellow-400"

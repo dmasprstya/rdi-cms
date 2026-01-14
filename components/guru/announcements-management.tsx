@@ -101,6 +101,7 @@ function AnnouncementFormFields({ formData, setFormData }: AnnouncementFormField
                 <input
                     type="checkbox"
                     id="isActive"
+                    name="isActive"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4"

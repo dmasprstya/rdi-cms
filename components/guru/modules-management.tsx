@@ -601,6 +601,7 @@ export default function ModulesManagement({ rolePrefix = 'guru' }: ModulesManage
                         </label>
                         <input
                             id="pdf-upload"
+                            name="pdfFile"
                             type="file"
                             accept=".pdf,application/pdf"
                             onChange={handleFileChange}
@@ -615,6 +616,7 @@ export default function ModulesManagement({ rolePrefix = 'guru' }: ModulesManage
                 <input
                     type="checkbox"
                     id="isPublished"
+                    name="isPublished"
                     checked={formData.isPublished}
                     onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
                     className="w-4 h-4"
