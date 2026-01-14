@@ -51,16 +51,20 @@ export default function SettingsPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">Nama Lengkap</label>
+                        <label htmlFor="fullName" className="block text-sm font-medium text-muted-foreground mb-2">Nama Lengkap</label>
                         <input
+                            id="fullName"
+                            name="fullName"
                             type="text"
                             defaultValue="Editor"
                             className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
+                        <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
                         <input
+                            id="email"
+                            name="email"
                             type="email"
                             defaultValue="editor@sekolah.com"
                             disabled
@@ -84,27 +88,36 @@ export default function SettingsPage() {
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">Password Saat Ini</label>
+                        <label htmlFor="currentPassword" className="block text-sm font-medium text-muted-foreground mb-2">Password Saat Ini</label>
                         <input
+                            id="currentPassword"
+                            name="currentPassword"
                             type="password"
                             placeholder="••••••••"
+                            autoComplete="current-password"
                             className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                         />
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-2">Password Baru</label>
+                            <label htmlFor="newPassword" className="block text-sm font-medium text-muted-foreground mb-2">Password Baru</label>
                             <input
+                                id="newPassword"
+                                name="newPassword"
                                 type="password"
                                 placeholder="••••••••"
+                                autoComplete="new-password"
                                 className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-2">Konfirmasi Password</label>
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-muted-foreground mb-2">Konfirmasi Password</label>
                             <input
+                                id="confirmPassword"
+                                name="confirmPassword"
                                 type="password"
                                 placeholder="••••••••"
+                                autoComplete="new-password"
                                 className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                             />
                         </div>
@@ -125,19 +138,31 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <label className="flex items-center justify-between p-4 bg-muted/50 rounded-xl cursor-pointer">
+                    <label htmlFor="emailNotification" className="flex items-center justify-between p-4 bg-muted/50 rounded-xl cursor-pointer">
                         <div>
                             <p className="text-sm font-medium text-foreground">Notifikasi Email</p>
                             <p className="text-xs text-muted-foreground">Dapatkan notifikasi melalui email</p>
                         </div>
-                        <input type="checkbox" defaultChecked className="w-5 h-5 text-yellow-500 bg-slate-700 border-border rounded focus:ring-yellow-500" />
+                        <input
+                            type="checkbox"
+                            id="emailNotification"
+                            name="emailNotification"
+                            defaultChecked
+                            className="w-5 h-5 text-yellow-500 bg-slate-700 border-border rounded focus:ring-yellow-500"
+                        />
                     </label>
-                    <label className="flex items-center justify-between p-4 bg-muted/50 rounded-xl cursor-pointer">
+                    <label htmlFor="changeNotification" className="flex items-center justify-between p-4 bg-muted/50 rounded-xl cursor-pointer">
                         <div>
                             <p className="text-sm font-medium text-foreground">Notifikasi Perubahan</p>
                             <p className="text-xs text-muted-foreground">Notifikasi saat konten dipublikasikan</p>
                         </div>
-                        <input type="checkbox" defaultChecked className="w-5 h-5 text-yellow-500 bg-slate-700 border-border rounded focus:ring-yellow-500" />
+                        <input
+                            type="checkbox"
+                            id="changeNotification"
+                            name="changeNotification"
+                            defaultChecked
+                            className="w-5 h-5 text-yellow-500 bg-slate-700 border-border rounded focus:ring-yellow-500"
+                        />
                     </label>
                 </div>
             </div>

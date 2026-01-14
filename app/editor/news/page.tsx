@@ -505,6 +505,7 @@ export default function NewsEditor() {
                                                                 src={item.featuredImage}
                                                                 alt={item.title}
                                                                 fill
+                                                                sizes="48px"
                                                                 className="object-cover"
                                                                 onError={(e) => {
                                                                     (e.target as HTMLImageElement).src =
@@ -730,6 +731,7 @@ export default function NewsEditor() {
                                         src={formData.featuredImage}
                                         alt="Featured"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 768px"
                                         className="object-cover"
                                     />
                                 </div>
@@ -779,6 +781,7 @@ export default function NewsEditor() {
                                                     src={img.imageUrl}
                                                     alt={`Content ${index + 1}`}
                                                     fill
+                                                    sizes="(max-width: 640px) 50vw, 33vw"
                                                     className="object-cover"
                                                 />
                                                 <button
