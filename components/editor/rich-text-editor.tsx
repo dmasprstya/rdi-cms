@@ -47,7 +47,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         content,
         editorProps: {
             attributes: {
-                class: 'prose prose-sm max-w-none min-h-[300px] px-4 py-3 focus:outline-none',
+                class: 'prose prose-sm max-w-none min-h-[300px] px-4 py-3 focus:outline-none [&_p]:text-justify [&_p]:mb-1',
             },
         },
         onUpdate: ({ editor }) => {
@@ -94,7 +94,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
                     <Bold className="h-4 w-4" />
                 </Button>
                 <Button
-                    type="button" 
+                    type="button"
                     size="sm"
                     variant={editor.isActive('italic') ? 'default' : 'ghost'}
                     onClick={() => editor.chain().focus().toggleItalic().run()}
