@@ -3,6 +3,7 @@
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactNode, useEffect, useState } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import React from "react";
 
 interface InfiniteCarouselProps {
     children: ReactNode[];
@@ -21,8 +22,15 @@ export function InfiniteCarousel({
     const prefersReducedMotion = useReducedMotion();
     const [isPaused, setIsPaused] = useState(false);
 
-    // Duplicate children for seamless loop
-    const items = [...children, ...children];
+    // Duplicate children for seamless loop with unique keys
+    const items = [
+        ...(React.Children.map(children, (child, index) =>
+            React.cloneElement(child as React.ReactElement, { key: `original-${index}` })
+        ) ?? []),
+        ...(React.Children.map(children, (child, index) =>
+            React.cloneElement(child as React.ReactElement, { key: `duplicate-${index}` })
+        ) ?? [])
+    ];
 
     useEffect(() => {
         if (prefersReducedMotion) return;

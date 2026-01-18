@@ -297,24 +297,24 @@ export default function AnnouncementsManagement({ rolePrefix = 'guru' }: Announc
         {
             header: 'Aksi',
             accessor: (row: Announcement) => (
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                     <Button
                         size="sm"
                         variant="outline"
                         onClick={() => openEditDialog(row)}
-                        className="gap-2"
+                        className="gap-1 sm:gap-2"
                     >
                         <Pencil className="w-4 h-4" />
-                        Edit
+                        <span className="hidden sm:inline">Edit</span>
                     </Button>
                     <Button
                         size="sm"
                         variant="outline"
                         onClick={() => openDeleteDialog(row)}
-                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                        className="gap-1 sm:gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                     >
                         <Trash2 className="w-4 h-4" />
-                        Hapus
+                        <span className="hidden sm:inline">Hapus</span>
                     </Button>
                 </div>
             ),
@@ -325,7 +325,7 @@ export default function AnnouncementsManagement({ rolePrefix = 'guru' }: Announc
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-foreground">Buat Pengumuman</h2>
                     <p className="text-muted-foreground">Kelola pengumuman untuk siswa Anda</p>
@@ -333,11 +333,11 @@ export default function AnnouncementsManagement({ rolePrefix = 'guru' }: Announc
                 <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                     <DialogTrigger asChild>
                         <Button
-                            className="gap-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
+                            className="w-full sm:w-auto gap-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
                             onClick={resetForm}
                         >
                             <Plus className="w-4 h-4" />
-                            Buat Pengumuman
+                            <span className="sm:inline">Buat Pengumuman</span>
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">

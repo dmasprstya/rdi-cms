@@ -37,45 +37,47 @@ export function DataTable<T>({ data, columns, className, loading, emptyMessage }
 
     return (
         <div className={cn("overflow-hidden rounded-lg border border-border", className)}>
-            <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted">
-                    <tr>
-                        {columns.map((column, idx) => (
-                            <th
-                                key={idx}
-                                className={cn(
-                                    "px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-foreground",
-                                    column.className
-                                )}
-                            >
-                                {column.header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-border bg-card">
-                    {data.map((row, rowIdx) => (
-                        <tr
-                            key={rowIdx}
-                            className="transition-colors hover:bg-muted/50"
-                        >
-                            {columns.map((column, colIdx) => (
-                                <td
-                                    key={colIdx}
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted">
+                        <tr>
+                            {columns.map((column, idx) => (
+                                <th
+                                    key={idx}
                                     className={cn(
-                                        "whitespace-nowrap px-6 py-4 text-sm text-card-foreground",
+                                        "px-3 md:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-foreground",
                                         column.className
                                     )}
                                 >
-                                    {typeof column.accessor === "function"
-                                        ? column.accessor(row)
-                                        : String(row[column.accessor])}
-                                </td>
+                                    {column.header}
+                                </th>
                             ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-border bg-card">
+                        {data.map((row, rowIdx) => (
+                            <tr
+                                key={rowIdx}
+                                className="transition-colors hover:bg-muted/50"
+                            >
+                                {columns.map((column, colIdx) => (
+                                    <td
+                                        key={colIdx}
+                                        className={cn(
+                                            "whitespace-nowrap px-3 md:px-6 py-4 text-sm text-card-foreground",
+                                            column.className
+                                        )}
+                                    >
+                                        {typeof column.accessor === "function"
+                                            ? column.accessor(row)
+                                            : String(row[column.accessor])}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
