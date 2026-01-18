@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Search, Mail, BookOpen, Users } from 'lucide-react';
+import { GraduationCap, Search, Mail, BookOpen, Users, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { generateTeachersPDF } from '@/lib/pdf-utils';
 
 interface Teacher {
     id: string;
@@ -21,6 +23,7 @@ export default function StaffTeachersPage() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         fetchTeachers();
@@ -46,13 +49,36 @@ export default function StaffTeachersPage() {
         teacher.subject?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleDownloadPDF = async () => {
+        try {
+            setDownloading(true);
+            // Small delay to show loading state
+            await new Promise(resolve => setTimeout(resolve, 300));
+            generateTeachersPDF(filteredTeachers);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold text-foreground">Data Guru</h2>
-                <p className="text-muted-foreground mt-1">
-                    Lihat data semua guru (read-only)
-                </p>
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold text-foreground">Data Guru</h2>
+                    <p className="text-muted-foreground mt-1">
+                        Lihat data semua guru (read-only)
+                    </p>
+                </div>
+                <Button
+                    onClick={handleDownloadPDF}
+                    disabled={downloading || filteredTeachers.length === 0}
+                    className="flex items-center gap-2"
+                >
+                    <Download className="w-4 h-4" />
+                    {downloading ? 'Generating...' : 'Download PDF'}
+                </Button>
             </div>
 
             {/* Search */}

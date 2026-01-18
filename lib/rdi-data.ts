@@ -53,6 +53,7 @@ export interface HeroContent {
     logoUrl?: string;
     aboutTitle?: string; // Title for "Sekilas Tentang" section
     aboutDescription?: string; // Description for "Sekilas Tentang" section
+    newsSidebarTitle?: string; // NEW: Title for news sidebar (e.g., "Berita Terbaru", "Latest News")
 }
 
 export interface HeroImage {
@@ -81,7 +82,11 @@ export interface NavbarContent {
     logoTextColor?: string;
     logoUrl?: string;
     menuItems: MenuItem[];
-    programItems: ProgramItem[];
+    /**
+     * @deprecated No longer used. Program dropdown items are now fetched from the programs database.
+     * Manage programs via /program admin page instead.
+     */
+    programItems?: ProgramItem[];
     loginText: string;
     contactText: string;
 }
@@ -124,6 +129,10 @@ export interface NewsItem {
 export interface LatestNewsContent {
     title: string;
     subtitle: string;
+    /**
+     * News items are fetched from the news database.
+     * Manage news via /berita admin page instead.
+     */
     newsItems: NewsItem[];
     viewAllText: string;
     viewAllLink: string;
@@ -180,6 +189,7 @@ const DEFAULT_HERO: HeroContent = {
     logoUrl: '/logos/rdi-logo.png',
     aboutTitle: 'SEKILAS TENTANG ROSMAN DJOHAN INSTITUTE',
     aboutDescription: 'SED UT PERSPICIATIS UNDE OMNIS ISTE NATUS ERROR SIT VOLUPTATEM ACCUSANTIUM DOLOREMQUE LAUDANTIUM, TOTAM REM APERIAM, EAQUE IPSA QUAE AB ILLO INVENTORE VERITATIS ET QUASI ARCHITECTO BEATAE VITAE DICTA SUNT EXPLICABO. NEMO ENIM IPSAM VOLUPTATEM QUIA VOLUPTAS SIT ASPERNATUR AUT ODIT AUT FUGIT, SED QUIA NON NUMQUAM EIUS MODI TEMPORA INCIDUNT UT LABORE ET DOLORE MAGNAM ALIQUAM QUAERAT VOLUPTATEM.',
+    newsSidebarTitle: 'Berita Terbaru', // NEW: Default fallback for news sidebar title
 };
 
 const DEFAULT_TRUST_PARTNERS: TrustPartnersContent = {
@@ -238,18 +248,7 @@ const DEFAULT_NAVBAR: NavbarContent = {
         { label: 'Berita', href: '/#berita' },
         { label: 'Tentang Kami', href: '/#tentang-kami' },
     ],
-    programItems: [
-        {
-            title: 'Program Luar Negeri',
-            description: 'Kuliah & kerja di Jerman, Taiwan, dan Jepang',
-            href: '/program/luar-negeri',
-        },
-        {
-            title: 'HALTEC (Halal Training)',
-            description: 'Pelatihan & sertifikasi profesi halal untuk industri',
-            href: '/program/haltec',
-        },
-    ],
+    // programItems removed - now fetched from programs database
     loginText: 'LOGIN',
     contactText: 'DAFTAR',
 };
@@ -357,6 +356,15 @@ export async function getCorePillarsContent(): Promise<CorePillarsContent> {
     return getRDIContent('rdi-core-pillars', DEFAULT_CORE_PILLARS);
 }
 
+/**
+ * Get navbar content for RDI landing page
+ * 
+ * DATA FLOW:
+ * - Logo, menu items, login/contact text: Fetched from CMS 'rdi-navbar'
+ * - Program dropdown items: Dynamically fetched from 'programs' database (see navbar-rdi.tsx)
+ * 
+ * Note: The 'programItems' field in CMS is NOT used. Programs are managed via /program admin page.
+ */
 export async function getNavbarContent(): Promise<NavbarContent> {
     // Skip during build
     if (!process.env.DATABASE_URL) {
@@ -378,7 +386,14 @@ export async function getNavbarContent(): Promise<NavbarContent> {
 
 /**
  * Get latest published news for landing page
- * Fetches the section header from CMS and the latest 3 published news from the database
+ * 
+ * DATA FLOW:
+ * - Section header (title, subtitle, viewAllText, viewAllLink): Fetched from CMS 'rdi-latest-news'
+ * - News articles: Fetched from 'news' database table (latest 3 published articles)
+ * 
+ * To edit news content: Use /berita admin page to manage news articles
+ * To edit section header: Use CMS editor for 'rdi-latest-news' section
+ * 
  * @returns LatestNewsContent with real news from database
  */
 export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {

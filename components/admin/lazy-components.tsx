@@ -98,7 +98,7 @@ export const LazyDashboardStats = dynamic(
 
 // ============ GURU COMPONENTS ============
 export const LazyGuruGradeInput = dynamic(
-    () => import('@/components/guru/grade-input'),
+    () => import('@/components/guru/grade-input-form'),
     {
         loading: () => <PageLoader />,
         ssr: false,

@@ -78,12 +78,6 @@ const menuItems = [
         description: 'Para Pendiri'
     },
     {
-        title: 'Latest News',
-        href: '/editor/latest-news',
-        icon: Newspaper,
-        description: 'Berita Terbaru'
-    },
-    {
         title: 'CTA Section',
         href: '/editor/cta',
         icon: MessageCircle,

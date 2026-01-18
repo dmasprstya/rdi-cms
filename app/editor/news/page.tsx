@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     Dialog,
     DialogContent,
@@ -40,6 +41,8 @@ import {
     ChevronRight,
     Search,
     FileText,
+    ChevronDown,
+    Save,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/editor/rich-text-editor';
@@ -72,6 +75,13 @@ interface NewsItem {
     images?: NewsImage[];
 }
 
+interface LatestNewsContent {
+    title: string;
+    subtitle: string;
+    viewAllText: string;
+    viewAllLink: string;
+}
+
 // Helper function to generate slug from title
 function generateSlug(title: string): string {
     return title
@@ -94,6 +104,17 @@ export default function NewsEditor() {
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+
+    // Latest News Section Config
+    const [sectionConfigOpen, setSectionConfigOpen] = useState(false);
+    const [sectionLoading, setSectionLoading] = useState(true);
+    const [savingSectionConfig, setSavingSectionConfig] = useState(false);
+    const [sectionContent, setSectionContent] = useState<LatestNewsContent>({
+        title: 'Update Kegiatan Terbaru',
+        subtitle: 'Ikuti perkembangan dan pencapaian terbaru kami',
+        viewAllText: 'Lihat Semua Berita',
+        viewAllLink: '/berita',
+    });
 
     // Form state
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -119,7 +140,7 @@ export default function NewsEditor() {
     });
 
     useEffect(() => {
-        fetchNews();
+        fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, statusFilter]);
 
@@ -135,8 +156,36 @@ export default function NewsEditor() {
         }
     }, [searchQuery, newsItems]);
 
-    const fetchNews = async () => {
+    const fetchData = async () => {
         setLoading(true);
+
+        // Fetch both news and section config in parallel
+        const [newsResult, sectionResult] = await Promise.allSettled([
+            fetchNews(),
+            fetchSectionContent()
+        ]);
+
+        // Handle news result
+        if (newsResult.status === 'rejected') {
+            console.error('Error fetching news:', newsResult.reason);
+            toast({
+                title: 'Error',
+                description: 'Gagal memuat berita',
+                variant: 'destructive',
+            });
+        }
+
+        // Handle section result independently
+        if (sectionResult.status === 'rejected') {
+            console.error('Error fetching section config:', sectionResult.reason);
+            // Don't show error toast - section config is optional
+        }
+
+        setLoading(false);
+        setSectionLoading(false);
+    };
+
+    const fetchNews = async () => {
         try {
             const params = new URLSearchParams({
                 page: currentPage.toString(),
@@ -156,14 +205,57 @@ export default function NewsEditor() {
                 setTotalPages(data.data.pagination.totalPages);
             }
         } catch (error) {
-            console.error('Error fetching news:', error);
+            throw error;
+        }
+    };
+
+    const fetchSectionContent = async () => {
+        try {
+            const response = await fetch('/api/cms/rdi?section=rdi-latest-news');
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                setSectionContent(data.data.content as LatestNewsContent);
+            }
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const handleSaveSectionConfig = async () => {
+        setSavingSectionConfig(true);
+        try {
+            const response = await fetch('/api/cms/rdi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    section: 'rdi-latest-news',
+                    content: sectionContent,
+                    isPublished: true,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast({
+                    title: 'Berhasil',
+                    description: 'Konfigurasi section berita berhasil disimpan',
+                });
+            } else {
+                throw new Error(data.error || 'Failed to save');
+            }
+        } catch (error) {
+            console.error('Error saving section config:', error);
             toast({
                 title: 'Error',
-                description: 'Gagal memuat berita',
+                description: 'Gagal menyimpan konfigurasi section',
                 variant: 'destructive',
             });
         } finally {
-            setLoading(false);
+            setSavingSectionConfig(false);
         }
     };
 
@@ -419,9 +511,125 @@ export default function NewsEditor() {
 
     return (
         <div className="space-y-6 pb-20 lg:pb-0">
+            {/* Latest News Section Configuration - Collapsible */}
+            <Collapsible open={sectionConfigOpen} onOpenChange={setSectionConfigOpen}>
+                <Card className="border-2 border-primary/40 bg-gradient-to-r from-primary/5 to-blue-500/5 shadow-md hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                        <CollapsibleTrigger className="flex items-center justify-between w-full group hover:opacity-80 transition-opacity">
+                            <div className="text-left flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                                        <span className="text-2xl">⚙️</span>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <CardTitle className="text-lg font-bold text-foreground">
+                                                Konfigurasi Section Berita
+                                            </CardTitle>
+                                            <span className="px-2.5 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+                                                CONFIG
+                                            </span>
+                                        </div>
+                                        <CardDescription className="mt-1 text-sm">
+                                            📝 Pengaturan tampilan section berita di landing page
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground font-medium">
+                                    {sectionConfigOpen ? 'Tutup' : 'Buka'}
+                                </span>
+                                <ChevronDown
+                                    className={`w-6 h-6 text-primary transition-transform ${sectionConfigOpen ? 'rotate-180' : ''
+                                        }`}
+                                />
+                            </div>
+                        </CollapsibleTrigger>
+                    </CardHeader>
+                    <CollapsibleContent>
+                        <CardContent className="space-y-4 pt-4 border-t">
+                            {sectionLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="section-title">Judul Section</Label>
+                                            <Input
+                                                id="section-title"
+                                                value={sectionContent.title}
+                                                onChange={(e) => setSectionContent({ ...sectionContent, title: e.target.value })}
+                                                placeholder="Update Kegiatan Terbaru"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="section-subtitle">Sub-judul</Label>
+                                            <Input
+                                                id="section-subtitle"
+                                                value={sectionContent.subtitle}
+                                                onChange={(e) => setSectionContent({ ...sectionContent, subtitle: e.target.value })}
+                                                placeholder="Ikuti perkembangan dan pencapaian terbaru kami"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="section-viewAllText">Text Button &quot;Lihat Semua&quot;</Label>
+                                            <Input
+                                                id="section-viewAllText"
+                                                value={sectionContent.viewAllText}
+                                                onChange={(e) => setSectionContent({ ...sectionContent, viewAllText: e.target.value })}
+                                                placeholder="Lihat Semua Berita"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="section-viewAllLink">Link Button &quot;Lihat Semua&quot;</Label>
+                                            <Input
+                                                id="section-viewAllLink"
+                                                value={sectionContent.viewAllLink}
+                                                onChange={(e) => setSectionContent({ ...sectionContent, viewAllLink: e.target.value })}
+                                                placeholder="/berita"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                        <p className="text-sm text-blue-900 dark:text-blue-100">
+                                            <strong>ℹ️ Info:</strong> Konten berita yang ditampilkan di landing page <strong>diambil secara otomatis</strong> dari 3 berita terbaru yang dipublikasikan. Untuk mengelola berita, gunakan form di bawah.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex justify-end pt-2">
+                                        <Button onClick={handleSaveSectionConfig} disabled={savingSectionConfig}>
+                                            {savingSectionConfig ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Menyimpan...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save className="w-4 h-4 mr-2" />
+                                                    Simpan Konfigurasi
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </CardContent>
+                    </CollapsibleContent>
+                </Card>
+            </Collapsible>
+
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                     <Link
                         href="/editor"
                         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-2"
@@ -432,7 +640,7 @@ export default function NewsEditor() {
                     <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-foreground">Editor Berita</h1>
                     <p className="mt-1 text-muted-foreground">Kelola berita dan kegiatan perusahaan</p>
                 </div>
-                <Button onClick={openCreateForm}>
+                <Button onClick={openCreateForm} className="shrink-0">
                     <Plus className="w-4 h-4 mr-2" />
                     Buat Berita
                 </Button>
@@ -487,18 +695,18 @@ export default function NewsEditor() {
                                 <table className="w-full">
                                     <thead className="border-b bg-muted/50">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-sm font-medium">Judul</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium">Kategori</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium">Tanggal</th>
-                                            <th className="px-4 py-3 text-left text-sm font-medium">Views</th>
-                                            <th className="px-4 py-3 text-right text-sm font-medium">Aksi</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium w-[300px]">Judul</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium w-[100px]">Status</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium w-[120px] hidden md:table-cell">Kategori</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium w-[120px] hidden lg:table-cell">Tanggal</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium w-[80px] hidden xl:table-cell">Views</th>
+                                            <th className="px-4 py-3 text-right text-sm font-medium w-[140px]">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
                                         {filteredNews.map((item) => (
                                             <tr key={item.id} className="hover:bg-muted/50">
-                                                <td className="px-4 py-3">
+                                                <td className="px-4 py-3 max-w-[300px]">
                                                     <div className="flex items-center gap-3">
                                                         <div className="relative w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-muted">
                                                             <Image
@@ -513,7 +721,7 @@ export default function NewsEditor() {
                                                                 }}
                                                             />
                                                         </div>
-                                                        <div className="min-w-0">
+                                                        <div className="min-w-0 flex-1">
                                                             <p className="font-medium truncate">{item.title}</p>
                                                             <p className="text-sm text-muted-foreground truncate">
                                                                 {item.slug}
@@ -531,15 +739,15 @@ export default function NewsEditor() {
                                                         {item.status === 'published' ? 'Published' : 'Draft'}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm">
+                                                <td className="px-4 py-3 hidden md:table-cell">
                                                     {item.category || '-'}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm">
+                                                <td className="px-4 py-3 text-sm hidden lg:table-cell">
                                                     {item.publishedAt
                                                         ? format(new Date(item.publishedAt), 'dd MMM yyyy')
                                                         : format(new Date(item.createdAt), 'dd MMM yyyy')}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm">{item.viewCount}</td>
+                                                <td className="px-4 py-3 text-sm hidden xl:table-cell">{item.viewCount}</td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {item.status === 'published' && (

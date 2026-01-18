@@ -1,8 +1,6 @@
-'use client';
-
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-
+import { Quote } from "lucide-react";
+import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import { FoundersContent } from "@/lib/rdi-data";
 
 interface FoundersSectionProps {
@@ -10,89 +8,70 @@ interface FoundersSectionProps {
 }
 
 export function FoundersSection({ content }: FoundersSectionProps) {
-
     return (
-        <section id="tentang-kami" className="py-20 bg-gradient-to-br from-secondary via-background to-secondary/50 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-            </div>
-
-            <div className="container mx-auto px-4 relative z-10">
+        <section id="tentang-kami" className="py-16 md:py-20 bg-secondary/30">
+            <div className="container mx-auto px-4">
                 {/* Section Header */}
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-foreground">
-                        {content.title}
-                    </h2>
-                    <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                        {content.subtitle}
-                    </p>
-                </div>
+                <ScrollReveal>
+                    <div className="text-center mb-12 md:mb-16">
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 md:mb-4">
+                            {content.title}
+                        </h2>
+                        <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+                            {content.subtitle}
+                        </p>
+                    </div>
+                </ScrollReveal>
 
                 {/* Founders Grid */}
-                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div className="grid sm:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
                     {content.founders.map((founder, idx) => (
-                        <Card
+                        <ScrollReveal
                             key={idx}
-                            className="bg-card/50 backdrop-blur-sm border-border hover:bg-card transition-all duration-300 overflow-hidden group"
+                            delay={idx * 0.05}
+                            disableOnMobile={true}
                         >
-                            <CardContent className="p-8">
-                                {/* Avatar Section */}
-                                <div className="flex flex-col items-center text-center space-y-6">
-                                    {/* Founder Avatar */}
-                                    {founder.image ? (
-                                        <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-primary/20 group-hover:border-primary/40 transition-all duration-300 shadow-lg">
+                            <div
+                                className="bg-card rounded-2xl p-8 md:p-10 shadow-lg hover:shadow-xl transition-all duration-300 border border-border"
+                            >
+                                {/* Circular Avatar with Ring */}
+                                <div className="flex justify-center mb-6">
+                                    <div className="relative w-36 h-36 md:w-40 md:h-40">
+                                        <div className="w-full h-full rounded-full overflow-hidden ring-4 ring-primary/20 ring-offset-4 ring-offset-background relative">
                                             <Image
                                                 src={founder.image}
                                                 alt={founder.name}
                                                 fill
+                                                className="object-cover object-center"
                                                 sizes="160px"
-                                                className="object-cover"
-                                                onError={(e) => {
-                                                    // Fallback to placeholder if image fails to load
-                                                    const target = e.currentTarget as HTMLImageElement;
-                                                    target.style.display = 'none';
-                                                    const placeholder = target.parentElement?.querySelector('.placeholder-fallback') as HTMLElement;
-                                                    if (placeholder) placeholder.style.display = 'flex';
-                                                }}
                                             />
-                                            {/* Fallback placeholder inside avatar */}
-                                            <div className="placeholder-fallback absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20" style={{ display: 'none' }}>
-                                                <span className="text-5xl font-bold text-muted-foreground">
-                                                    {founder.name.charAt(0)}
-                                                </span>
-                                            </div>
                                         </div>
-                                    ) : (
-                                        <div className="w-40 h-40 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border-4 border-primary/20 shadow-lg">
-                                            <span className="text-5xl font-bold text-muted-foreground">
-                                                {founder.name.charAt(0)}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Vision Badge */}
-                                    <div className="inline-block px-5 py-2 bg-primary/90 rounded-full shadow-md">
-                                        <span className="text-xs sm:text-sm font-semibold text-primary-foreground">
-                                            {founder.vision}
-                                        </span>
-                                    </div>
-
-                                    {/* Name and Role */}
-                                    <div className="space-y-2">
-                                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                                            {founder.name}
-                                        </h3>
-                                        <p className="text-sm sm:text-base text-muted-foreground font-medium">{founder.role}</p>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+
+                                {/* Vision Badge - Yellow */}
+                                <div className="flex justify-center mb-4">
+                                    <div className="inline-block px-5 py-2 bg-amber-400 dark:bg-amber-500 rounded-full">
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-950">
+                                            {founder.vision}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Name */}
+                                <h3 className="text-xl md:text-2xl font-bold text-center text-foreground mb-2">
+                                    {founder.name}
+                                </h3>
+
+                                {/* Role */}
+                                <p className="text-sm md:text-base text-center text-muted-foreground font-medium">
+                                    {founder.role}
+                                </p>
+                            </div>
+                        </ScrollReveal>
                     ))}
                 </div>
             </div>
         </section>
     );
 }
-

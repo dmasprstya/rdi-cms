@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { requireGuruAccess } from '@/lib/auth/guru-auth';
 import { db } from '@/db';
 import { grades, teachers, guruKelas } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -75,25 +76,19 @@ export async function GET(req: NextRequest) {
 // POST /api/guru/grades - Create or update grades (batch)
 export async function POST(req: NextRequest) {
     try {
-        const session = await auth();
-
-        if (!session || session.user.role !== 'guru') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Get the teacher record
-        const [teacher] = await db
-            .select()
-            .from(teachers)
-            .where(eq(teachers.userId, session.user.id))
-            .limit(1);
-
-        if (!teacher) {
-            return NextResponse.json({ error: 'Teacher profile not found' }, { status: 404 });
-        }
-
         const body = await req.json();
         const { classId, subjectId, semester, academicYear, gradesData } = body;
+
+        if (!classId || !subjectId || !semester || !academicYear || !gradesData || !Array.isArray(gradesData)) {
+            console.error('Invalid request data:', { classId, subjectId, semester, academicYear, gradesData: !!gradesData });
+            return NextResponse.json(
+                { error: 'Invalid request data - missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        // Validate teacher access and get teacher profile (validates session, role, and class access)
+        const teacher = await requireGuruAccess(classId);
 
         // Log incoming request
         console.log('POST /api/guru/grades - Request:', {
@@ -104,31 +99,6 @@ export async function POST(req: NextRequest) {
             academicYear,
             gradesCount: gradesData?.length
         });
-
-        if (!classId || !subjectId || !semester || !academicYear || !gradesData || !Array.isArray(gradesData)) {
-            console.error('Invalid request data:', { classId, subjectId, semester, academicYear, gradesData: !!gradesData });
-            return NextResponse.json(
-                { error: 'Invalid request data - missing required fields' },
-                { status: 400 }
-            );
-        }
-
-        // Verify teacher teaches this class
-        const [teaches] = await db
-            .select()
-            .from(guruKelas)
-            .where(
-                and(
-                    eq(guruKelas.teacherId, teacher.id),
-                    eq(guruKelas.classId, classId)
-                )
-            )
-            .limit(1);
-
-        if (!teaches) {
-            console.error('Teacher does not teach this class:', { teacherId: teacher.id, classId });
-            return NextResponse.json({ error: 'You do not teach this class' }, { status: 403 });
-        }
 
         // Process each grade with detailed error tracking
         const results = [];

@@ -19,7 +19,7 @@ interface Student {
     className: string | null;
 }
 
-export default function StaffStudentsPage() {
+export default function GuruStudentsPage() {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -31,7 +31,7 @@ export default function StaffStudentsPage() {
 
     const fetchStudents = async () => {
         try {
-            const response = await fetch('/api/students');
+            const response = await fetch('/api/guru/students');
             if (response.ok) {
                 const data = await response.json();
                 setStudents(data);
@@ -66,18 +66,18 @@ export default function StaffStudentsPage() {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-foreground">Data Siswa</h2>
+                    <h2 className="text-3xl font-bold text-foreground">Rekap Data Siswa</h2>
                     <p className="text-muted-foreground mt-1">
-                        Lihat data semua siswa (read-only)
+                        Lihat dan unduh rekap data siswa
                     </p>
                 </div>
                 <Button
                     onClick={handleDownloadPDF}
                     disabled={downloading || filteredStudents.length === 0}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
                 >
                     <Download className="w-4 h-4" />
-                    {downloading ? 'Generating...' : 'Download PDF'}
+                    {downloading ? 'Membuat PDF...' : 'Download PDF'}
                 </Button>
             </div>
 
@@ -87,6 +87,8 @@ export default function StaffStudentsPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
+                            id="search-students"
+                            name="search-students"
                             placeholder="Cari berdasarkan nama, NIS, atau kelas..."
                             className="pl-10"
                             value={searchTerm}
@@ -100,7 +102,7 @@ export default function StaffStudentsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-blue-500" />
+                        <Users className="w-5 h-5 text-purple-500" />
                         Daftar Siswa ({filteredStudents.length})
                     </CardTitle>
                 </CardHeader>

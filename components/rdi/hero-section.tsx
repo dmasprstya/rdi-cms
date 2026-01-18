@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,8 @@ import { HeroContent, HeroImage, NewsItem } from "@/lib/rdi-data";
 import Image from "next/image";
 import Link from "next/link";
 import { ReadMoreText } from "@/components/rdi/read-more-text";
+import { heroTitle, heroSubtitle, heroButton } from "@/lib/animations/variants";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface HeroSectionProps {
     content: HeroContent;
@@ -20,54 +23,59 @@ interface HeroSectionProps {
 const NewsCard = memo(function NewsCard({ news }: { news: NewsItem }) {
     return (
         <Link href={`/berita/${news.slug}`}>
-            <Card className="group overflow-hidden card-hover cursor-pointer h-full">
-                {/* Image */}
-                <div className="relative h-28 sm:h-32 overflow-hidden">
-                    {news.image && (
-                        <Image
-                            src={news.image}
-                            alt={news.title}
-                            fill
-                            className="object-cover transition-transform group-hover:scale-105 duration-300"
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 100vw, 35vw"
-                        />
-                    )}
+            <motion.div
+                whileHover={{ scale: 1.03, y: -4 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+                <Card className="group overflow-hidden cursor-pointer h-full shadow-md hover:shadow-xl transition-shadow duration-300">
+                    {/* Image */}
+                    <div className="relative h-28 sm:h-32 overflow-hidden">
+                        {news.image && (
+                            <Image
+                                src={news.image}
+                                alt={news.title}
+                                fill
+                                className="object-cover transition-transform group-hover:scale-110 duration-500"
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 100vw, 35vw"
+                            />
+                        )}
 
-                    {/* Dark overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        {/* Dark overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-                    {/* Category Badge */}
-                    <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10">
-                        <Badge
-                            variant={news.category === "Overseas" ? "default" : "secondary"}
-                            className="font-semibold text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1"
-                        >
-                            {news.category}
-                        </Badge>
-                    </div>
-                </div>
-
-                <CardHeader className="pb-1.5 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
-                    <div className="flex items-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-xs text-muted-foreground mb-1">
-                        <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span>{new Date(news.date).toLocaleDateString("id-ID", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })}</span>
+                        {/* Category Badge */}
+                        <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10">
+                            <Badge
+                                variant={news.category === "Overseas" ? "default" : "secondary"}
+                                className="font-semibold text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1"
+                            >
+                                {news.category}
+                            </Badge>
+                        </div>
                     </div>
 
-                    <CardTitle className="group-hover:text-primary transition-colors line-clamp-2 text-xs sm:text-sm">
-                        {news.title}
-                    </CardTitle>
-                </CardHeader>
+                    <CardHeader className="pb-1.5 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                        <div className="flex items-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-xs text-muted-foreground mb-1">
+                            <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            <span>{new Date(news.date).toLocaleDateString("id-ID", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            })}</span>
+                        </div>
 
-                <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-                    <CardDescription className="line-clamp-2 text-[10px] sm:text-xs">
-                        {news.excerpt}
-                    </CardDescription>
-                </CardContent>
-            </Card>
+                        <CardTitle className="group-hover:text-primary transition-colors line-clamp-2 text-xs sm:text-sm">
+                            {news.title}
+                        </CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                        <CardDescription className="line-clamp-2 text-[10px] sm:text-xs">
+                            {news.excerpt}
+                        </CardDescription>
+                    </CardContent>
+                </Card>
+            </motion.div>
         </Link>
     );
 });
@@ -80,6 +88,7 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
     const [isPlaying, setIsPlaying] = useState(true);
     const [validImages, setValidImages] = useState(images);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+    const prefersReduced = useReducedMotion();
 
     const duration = content.slideshowDuration || 6000;
 
@@ -214,11 +223,27 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
                                 </div>
                             )}
 
+                            {/* Animated Gradient Overlay */}
+                            <div className="absolute inset-0 z-[1] pointer-events-none">
+                                <div
+                                    className="absolute inset-0 animate-gradient-shift"
+                                    style={{
+                                        background: "linear-gradient(45deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%)",
+                                        backgroundSize: "200% 200%"
+                                    }}
+                                />
+                            </div>
+
                             {/* Hero Text Content */}
                             <div className="relative z-10 w-full px-4 sm:px-6 md:px-12 lg:px-16 pb-8 sm:pb-12 md:pb-16 lg:pb-20">
                                 <div className="space-y-3 sm:space-y-4 md:space-y-6">
                                     {content.logoUrl && (
-                                        <div className="flex justify-start mb-2 sm:mb-4">
+                                        <motion.div
+                                            className="flex justify-start mb-2 sm:mb-4"
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.5 }}
+                                        >
                                             <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
                                                 <Image
                                                     src={content.logoUrl}
@@ -228,18 +253,33 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
                                                     priority
                                                 />
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     )}
 
-                                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
+                                    <motion.h1
+                                        className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight"
+                                        initial="hidden"
+                                        animate="visible"
+                                        variants={prefersReduced ? undefined : heroTitle}
+                                    >
                                         {content.title}
-                                    </h1>
+                                    </motion.h1>
 
-                                    <p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 max-w-2xl">
+                                    <motion.p
+                                        className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 max-w-2xl"
+                                        initial="hidden"
+                                        animate="visible"
+                                        variants={prefersReduced ? undefined : heroSubtitle}
+                                    >
                                         {content.subtitle}
-                                    </p>
+                                    </motion.p>
 
-                                    <div className="pt-1 sm:pt-2">
+                                    <motion.div
+                                        className="pt-1 sm:pt-2"
+                                        initial="hidden"
+                                        animate="visible"
+                                        variants={prefersReduced ? undefined : heroButton}
+                                    >
                                         <Button
                                             onClick={scrollToPrograms}
                                             size="lg"
@@ -248,7 +288,7 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
                                             {content.buttonText}
                                             <ArrowDown className="ml-1.5 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                                         </Button>
-                                    </div>
+                                    </motion.div>
                                 </div>
                             </div>
                         </div>
@@ -267,7 +307,9 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
                     {/* Right Column - News Sidebar */}
                     <div className="flex flex-col bg-background border-t lg:border-t-0">
                         <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
-                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4 sm:mb-4">Berita Terbaru</h3>
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4 sm:mb-4">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
                                 {newsItems.slice(0, 3).map((news, index) => (
                                     <NewsCard key={index} news={news} />
@@ -357,7 +399,9 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
                     {/* Right Column - News Sidebar */}
                     <div className="bg-background border-t lg:border-t-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
-                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">Berita Terbaru</h3>
+                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
                             {newsItems.slice(0, 3).map((news, index) => (
                                 <NewsCard key={index} news={news} />
                             ))}
@@ -447,7 +491,9 @@ function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { con
                     {/* Right Column - News Sidebar */}
                     <div className="bg-background border-t lg:border-t-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
-                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">Berita Terbaru</h3>
+                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
                             {newsItems.slice(0, 3).map((news, index) => (
                                 <NewsCard key={index} news={news} />
                             ))}
@@ -525,7 +571,9 @@ function DefaultHeroLayout({ content, scrollToPrograms, newsItems }: { content: 
                     {/* Right Column - News Sidebar */}
                     <div className="bg-background border-t lg:border-t-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
-                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">Berita Terbaru</h3>
+                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
                             {newsItems.slice(0, 3).map((news, index) => (
                                 <NewsCard key={index} news={news} />
                             ))}

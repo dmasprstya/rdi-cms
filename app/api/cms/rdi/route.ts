@@ -9,7 +9,9 @@ import { eq } from 'drizzle-orm';
 const RDI_SECTIONS = [
     'rdi-hero',
     'rdi-trust-partners',
-    'rdi-core-pillars',
+    // 'rdi-core-pillars' - REMOVED: Programs are dynamically fetched from the 'programs' database table
+    //                       This provides automatic updates when new programs are added
+    //                       Edit programs via /program admin page, NOT via CMS
     'rdi-why-rdi',
     'rdi-founders',
     'rdi-latest-news',

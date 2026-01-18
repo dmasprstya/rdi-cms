@@ -15,18 +15,11 @@ interface MenuItem {
     href: string;
 }
 
-interface ProgramItem {
-    title: string;
-    description: string;
-    href: string;
-}
-
 interface NavbarContent {
     logoText: string;
     logoTextColor?: string;
     logoUrl?: string;
     menuItems: MenuItem[];
-    programItems: ProgramItem[];
     loginText: string;
     contactText: string;
 }
@@ -44,18 +37,6 @@ export default function NavbarEditor() {
             { label: 'Beranda', href: '/' },
             { label: 'Berita', href: '/#berita' },
             { label: 'Tentang Kami', href: '/#tentang-kami' },
-        ],
-        programItems: [
-            {
-                title: 'Program Luar Negeri',
-                description: 'Kuliah & kerja di Jerman, Taiwan, dan Jepang',
-                href: '/program/luar-negeri',
-            },
-            {
-                title: 'HALTEC (Halal Training)',
-                description: 'Pelatihan & sertifikasi profesi halal untuk industri',
-                href: '/program/haltec',
-            },
         ],
         loginText: 'LOGIN',
         contactText: 'DAFTAR',
@@ -140,26 +121,6 @@ export default function NavbarEditor() {
         const newItems = [...content.menuItems];
         newItems[index] = { ...newItems[index], [field]: value };
         setContent({ ...content, menuItems: newItems });
-    };
-
-    const addProgramItem = () => {
-        setContent({
-            ...content,
-            programItems: [...content.programItems, { title: 'New Program', description: '', href: '/' }]
-        });
-    };
-
-    const removeProgramItem = (index: number) => {
-        setContent({
-            ...content,
-            programItems: content.programItems.filter((_, i) => i !== index)
-        });
-    };
-
-    const updateProgramItem = (index: number, field: keyof ProgramItem, value: string) => {
-        const newItems = [...content.programItems];
-        newItems[index] = { ...newItems[index], [field]: value };
-        setContent({ ...content, programItems: newItems });
     };
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -419,65 +380,6 @@ export default function NavbarEditor() {
                                     value={item.href}
                                     onChange={(e) => updateMenuItem(index, 'href', e.target.value)}
                                     placeholder="/"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Program Dropdown Items */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-foreground">Dropdown Program</h2>
-                    <Button onClick={addProgramItem} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Tambah Program
-                    </Button>
-                </div>
-
-                {content.programItems.map((item, index) => (
-                    <Card key={index}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg">Program #{index + 1}</CardTitle>
-                                {content.programItems.length > 1 && (
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => removeProgramItem(index)}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-2" />
-                                        Hapus
-                                    </Button>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Judul Program</Label>
-                                    <Input
-                                        value={item.title}
-                                        onChange={(e) => updateProgramItem(index, 'title', e.target.value)}
-                                        placeholder="Program Luar Negeri"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Link URL</Label>
-                                    <Input
-                                        value={item.href}
-                                        onChange={(e) => updateProgramItem(index, 'href', e.target.value)}
-                                        placeholder="/program/luar-negeri"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Deskripsi</Label>
-                                <Input
-                                    value={item.description}
-                                    onChange={(e) => updateProgramItem(index, 'description', e.target.value)}
-                                    placeholder="Kuliah & kerja di Jerman, Taiwan, dan Jepang"
                                 />
                             </div>
                         </CardContent>

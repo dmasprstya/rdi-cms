@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastProvider } from "@/components/toast-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Suspense, type ReactNode } from "react";
+import { MotionProvider } from "@/components/animations/motion-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,13 +42,13 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <head></head>
       <body className={inter.className}>
-        <ThemeProvider defaultTheme="light" storageKey="sts-ui-theme">
-          <Suspense fallback={<div>Loading...</div>}>
+        <MotionProvider>
+          <ThemeProvider defaultTheme="light" storageKey="sts-ui-theme">
             {children}
-          </Suspense>
-          <Toaster />
-          <ToastProvider />
-        </ThemeProvider>
+            <Toaster />
+            <ToastProvider />
+          </ThemeProvider>
+        </MotionProvider>
       </body>
     </html>
   );

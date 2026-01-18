@@ -1,6 +1,7 @@
 
 import { Network, Users, Shield, Award, Target, CheckCircle, Globe, BookOpen, LucideIcon } from "lucide-react";
-
+import { ScrollReveal } from "@/components/animations/scroll-reveal";
+import { AnimatedIcon } from "@/components/animations/animated-icon";
 import { WhyRDIContent } from "@/lib/rdi-data";
 
 interface WhyRDISectionProps {
@@ -33,39 +34,48 @@ export function WhyRDISection({ content }: WhyRDISectionProps) {
 
             <div className="container mx-auto px-4 relative z-10">
                 {/* Section Header */}
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-                        {content.title}
-                    </h2>
-                    <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                        {content.subtitle}
-                    </p>
-                </div>
+                <ScrollReveal>
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+                            {content.title}
+                        </h2>
+                        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                            {content.subtitle}
+                        </p>
+                    </div>
+                </ScrollReveal>
 
                 {/* Features Grid */}
                 <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {content.features.map((feature, idx) => {
                         const Icon = iconMap[feature.icon] || Network;
                         return (
-                            <div
+                            <ScrollReveal
                                 key={idx}
-                                className="text-center space-y-4 p-6 rounded-xl hover:bg-card transition-all duration-300 group"
+                                delay={idx * 0.05}
+                                disableOnMobile={true}
                             >
-                                {/* Icon */}
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 group-hover:scale-110">
-                                    <Icon className="w-8 h-8" />
+                                <div
+                                    className="text-center space-y-4 p-6 rounded-xl hover:bg-card transition-all duration-300 group"
+                                >
+                                    {/* Icon with bounce animation */}
+                                    <AnimatedIcon delay={idx * 0.1}>
+                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 group-hover:scale-110">
+                                            <Icon className="w-8 h-8" />
+                                        </div>
+                                    </AnimatedIcon>
+
+                                    {/* Title */}
+                                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
+                                        {feature.title}
+                                    </h3>
+
+                                    {/* Description */}
+                                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                                        {feature.description}
+                                    </p>
                                 </div>
-
-                                {/* Title */}
-                                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
-                                    {feature.title}
-                                </h3>
-
-                                {/* Description */}
-                                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                                    {feature.description}
-                                </p>
-                            </div>
+                            </ScrollReveal>
                         );
                     })}
                 </div>

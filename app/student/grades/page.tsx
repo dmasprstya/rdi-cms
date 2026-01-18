@@ -84,11 +84,11 @@ export default function StudentGradesPage() {
     }) || [];
 
     // Calculate average for displayed grades
-    const calculateAverage = (periods: GradePeriod[]) => {
+    const calculateAverage = (periods: GradePeriod[]): string => {
         const allGrades = periods.flatMap(p => p.grades);
-        if (allGrades.length === 0) return 0;
+        if (allGrades.length === 0) return '0.00';
         const sum = allGrades.reduce((acc, g) => acc + g.score, 0);
-        return Math.round(sum / allGrades.length);
+        return (sum / allGrades.length).toFixed(2);
     };
 
     const average = calculateAverage(filteredGrades);
