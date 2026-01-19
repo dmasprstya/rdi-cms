@@ -8,6 +8,7 @@ import { LatestNewsSection } from "@/components/rdi/latest-news-section";
 import { CTASection } from "@/components/rdi/cta-section";
 import { FooterRDI } from "@/components/rdi/footer-rdi";
 import { BackToTopButton } from "@/components/rdi/back-to-top-button";
+import dynamic from 'next/dynamic';
 import {
     getHeroContent,
     getHeroImages,
@@ -17,7 +18,14 @@ import {
     WhyRDIContent,
     FoundersContent,
     CTAContent,
+    getWhatsAppFloatContent,
 } from "@/lib/rdi-data";
+
+// Lazy load WhatsApp float button (client-side only, no SSR)
+const WhatsAppFloatButton = dynamic(
+    () => import('@/components/rdi/whatsapp-float-button'),
+    { ssr: false }
+);
 
 
 // Use ISR (Incremental Static Regeneration) - homepage cached for 5 minutes
@@ -42,6 +50,9 @@ export default async function RDILandingPage() {
     const latestNewsContent = await getLatestNewsForLanding();
 
     const ctaContent = await fetchRDISection<CTAContent>('rdi-cta');
+
+    // Fetch WhatsApp float button configuration
+    const whatsappFloatContent = await getWhatsAppFloatContent();
 
     // Provide default fallbacks
     const defaultWhyRDI: WhyRDIContent = {
@@ -112,6 +123,16 @@ export default async function RDILandingPage() {
             <CTASection content={ctaContent || defaultCTA} />
             <FooterRDI />
             <BackToTopButton />
+
+            {/* WhatsApp Float Button - Conditionally rendered */}
+            {whatsappFloatContent?.enabled && (
+                <WhatsAppFloatButton
+                    phoneNumber={whatsappFloatContent.phoneNumber}
+                    message={whatsappFloatContent.defaultMessage}
+                    position={whatsappFloatContent.position}
+                    tooltipText={whatsappFloatContent.tooltipText}
+                />
+            )}
         </main>
     );
 }

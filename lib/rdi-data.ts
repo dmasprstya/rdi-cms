@@ -151,10 +151,9 @@ export interface CTAContent {
 }
 
 export interface SocialMedia {
-    facebook: string;
-    instagram: string;
-    youtube: string;
-    linkedin: string;
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
 }
 
 export interface Legalitas {
@@ -178,6 +177,14 @@ export interface FooterContent {
     legalitas: Legalitas;
     contact: Contact;
     copyright: string;
+}
+
+export interface WhatsAppFloatContent {
+    enabled: boolean;
+    phoneNumber: string;
+    defaultMessage: string;
+    position: 'right' | 'left';
+    tooltipText: string;
 }
 
 // Default content fallbacks
@@ -396,6 +403,40 @@ export async function getNavbarContent(): Promise<NavbarContent> {
  * 
  * @returns LatestNewsContent with real news from database
  */
+/**
+ * Get WhatsApp float button configuration
+ */
+export async function getWhatsAppFloatContent(): Promise<WhatsAppFloatContent> {
+    // Skip during build
+    if (!process.env.DATABASE_URL) {
+        return {
+            enabled: true,
+            phoneNumber: '6281234567890',
+            defaultMessage: 'Halo, saya ingin bertanya tentang program RDI',
+            position: 'right' as const,
+            tooltipText: 'Chat dengan kami via WhatsApp',
+        };
+    }
+
+    return unstable_cache(
+        async () => {
+            const content = await fetchRDISection<WhatsAppFloatContent>('rdi-whatsapp-float');
+            return content || {
+                enabled: true,
+                phoneNumber: '6281234567890',
+                defaultMessage: 'Halo, saya ingin bertanya tentang program RDI',
+                position: 'right' as const,
+                tooltipText: 'Chat dengan kami via WhatsApp',
+            };
+        },
+        ['whatsapp-float-content'],
+        {
+            tags: ['whatsapp-float-content', 'rdi-content'],
+            revalidate: 3600 // Cache for 1 hour
+        }
+    )();
+}
+
 export async function getLatestNewsForLanding(): Promise<LatestNewsContent> {
     // Skip during build
     if (!process.env.DATABASE_URL) {

@@ -12,6 +12,7 @@ import {
     User,
     Newspaper,
     MessageCircle,
+    MessageSquare,
     Footprints,
     Settings,
     ChevronRight,
@@ -88,6 +89,12 @@ const menuItems = [
         href: '/editor/footer',
         icon: Footprints,
         description: 'Footer & Sosial Media'
+    },
+    {
+        title: 'WhatsApp Float',
+        href: '/editor/whatsapp-float',
+        icon: MessageSquare,
+        description: 'Tombol WhatsApp Melayang'
     },
 ];
 

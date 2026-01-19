@@ -1,10 +1,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { GraduationCap, Mail, Phone, MapPin, Facebook, Instagram, Youtube, Linkedin } from "lucide-react";
+import { GraduationCap, Mail, Phone, MapPin, Facebook, Instagram } from "lucide-react";
 
 import { FooterContent } from "@/lib/rdi-data";
 import { ProgramsContent } from "@/lib/program-data";
+import { TikTokIcon } from "@/components/icons/tiktok-icon";
 
 interface FooterRDIProps {
     content: FooterContent;
@@ -37,35 +38,29 @@ export function FooterRDI({ content, programsContent }: FooterRDIProps) {
                             )}
                             <span className="text-lg sm:text-xl font-bold text-foreground">{content.logoText}</span>
                         </div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground text-justify">
                             {content.description}
                         </p>
 
                         {/* Social Media */}
                         <div className="flex space-x-4">
                             <Link
-                                href={content.socialMedia.facebook}
+                                href={content.socialMedia.facebook || '#'}
                                 className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-all"
                             >
                                 <Facebook className="w-5 h-5" />
                             </Link>
                             <Link
-                                href={content.socialMedia.instagram}
+                                href={content.socialMedia.instagram || '#'}
                                 className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-all"
                             >
                                 <Instagram className="w-5 h-5" />
                             </Link>
                             <Link
-                                href={content.socialMedia.youtube}
+                                href={content.socialMedia.tiktok || '#'}
                                 className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-all"
                             >
-                                <Youtube className="w-5 h-5" />
-                            </Link>
-                            <Link
-                                href={content.socialMedia.linkedin}
-                                className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-all"
-                            >
-                                <Linkedin className="w-5 h-5" />
+                                <TikTokIcon className="w-5 h-5" />
                             </Link>
                         </div>
                     </div>

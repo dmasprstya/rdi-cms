@@ -89,6 +89,14 @@ const sections = [
         color: 'from-teal-500 to-cyan-500',
         status: 'published'
     },
+    {
+        title: 'WhatsApp Float Button',
+        description: 'Kelola tombol WhatsApp mengambang di landing page.',
+        href: '/editor/whatsapp-float',
+        icon: MessageCircle,
+        color: 'from-green-500 to-emerald-600',
+        status: 'published'
+    },
 ];
 
 export default function EditorDashboardPage() {
@@ -110,7 +118,7 @@ export default function EditorDashboardPage() {
                             <CheckCircle className="w-5 h-5 text-green-400" />
                         </div>
                         <div>
-                            <p className="text-xl sm:text-2xl font-bold text-foreground">9</p>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">10</p>
                             <p className="text-xs text-muted-foreground">Dipublikasi</p>
                         </div>
                     </div>
@@ -132,7 +140,7 @@ export default function EditorDashboardPage() {
                             <Eye className="w-5 h-5 text-blue-400" />
                         </div>
                         <div>
-                            <p className="text-xl sm:text-2xl font-bold text-foreground">9</p>
+                            <p className="text-xl sm:text-2xl font-bold text-foreground">10</p>
                             <p className="text-xs text-muted-foreground">Total Section</p>
                         </div>
                     </div>

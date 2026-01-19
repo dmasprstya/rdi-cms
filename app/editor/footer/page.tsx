@@ -13,8 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 interface SocialMedia {
     facebook: string;
     instagram: string;
-    youtube: string;
-    linkedin: string;
+    tiktok: string;
 }
 
 interface Legalitas {
@@ -47,8 +46,7 @@ export default function FooterEditor() {
         socialMedia: {
             facebook: '#',
             instagram: '#',
-            youtube: '#',
-            linkedin: '#',
+            tiktok: '#',
         },
         legalitas: {
             nib: '1234567890123456',
@@ -231,28 +229,15 @@ export default function FooterEditor() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="youtube">YouTube URL</Label>
+                        <Label htmlFor="tiktok">TikTok URL</Label>
                         <Input
-                            id="youtube"
-                            value={content.socialMedia.youtube}
+                            id="tiktok"
+                            value={content.socialMedia.tiktok}
                             onChange={(e) => setContent({
                                 ...content,
-                                socialMedia: { ...content.socialMedia, youtube: e.target.value }
+                                socialMedia: { ...content.socialMedia, tiktok: e.target.value }
                             })}
-                            placeholder="https://youtube.com/@rosmandjohan"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="linkedin">LinkedIn URL</Label>
-                        <Input
-                            id="linkedin"
-                            value={content.socialMedia.linkedin}
-                            onChange={(e) => setContent({
-                                ...content,
-                                socialMedia: { ...content.socialMedia, linkedin: e.target.value }
-                            })}
-                            placeholder="https://linkedin.com/company/rosmandjohan"
+                            placeholder="https://tiktok.com/@rosmandjohan"
                         />
                     </div>
                 </CardContent>

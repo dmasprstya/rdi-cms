@@ -9,8 +9,7 @@ const DEFAULT_FOOTER: FooterContent = {
     socialMedia: {
         facebook: '#',
         instagram: '#',
-        youtube: '#',
-        linkedin: '#',
+        tiktok: '#',
     },
     legalitas: {
         nib: '1234567890123456',

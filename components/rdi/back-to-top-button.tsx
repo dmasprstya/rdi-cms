@@ -37,7 +37,7 @@ export function BackToTopButton() {
             onClick={scrollToTop}
             className={`
         fixed bottom-8 right-8 z-50
-        p-3 rounded-full
+        w-14 h-14 flex items-center justify-center rounded-full
         bg-gradient-to-br from-blue-600 to-blue-700
         text-white shadow-lg
         hover:from-blue-700 hover:to-blue-800

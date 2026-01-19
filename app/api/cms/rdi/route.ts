@@ -17,7 +17,8 @@ const RDI_SECTIONS = [
     'rdi-latest-news',
     'rdi-cta',
     'rdi-footer',
-    'rdi-navbar'
+    'rdi-navbar',
+    'rdi-whatsapp-float'
 ];
 
 // GET - Fetch RDI landing page content by section
