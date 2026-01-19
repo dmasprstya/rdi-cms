@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { MessageCircle } from 'lucide-react';
 
 interface WhatsAppFloatButtonProps {
@@ -22,18 +22,6 @@ const WhatsAppIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
     </svg>
 );
 
-// Debounce utility function
-function debounce<T extends (...args: any[]) => void>(
-    func: T,
-    wait: number
-): (...args: Parameters<T>) => void {
-    let timeout: NodeJS.Timeout | null = null;
-    return (...args: Parameters<T>) => {
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-    };
-}
-
 export default function WhatsAppFloatButton({
     phoneNumber,
     message = '',
@@ -42,7 +30,6 @@ export default function WhatsAppFloatButton({
 }: WhatsAppFloatButtonProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [showTooltip, setShowTooltip] = useState(false);
-    const footerObserverRef = useRef<IntersectionObserver | null>(null);
 
     // Generate WhatsApp URL
     const whatsappUrl = `https://wa.me/${phoneNumber}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
@@ -51,43 +38,35 @@ export default function WhatsAppFloatButton({
     const handleScroll = useCallback(() => {
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
-        // Hide if too close to top (within 100px of header)
-        if (scrollTop < 100) {
+        // Hide if too close to top (within 300px of header)
+        if (scrollTop < 300) {
             setIsVisible(false);
         } else {
             setIsVisible(true);
         }
     }, []);
 
-    // Create debounced version using useRef to maintain stable reference
-    const debouncedHandleScroll = useRef(debounce(handleScroll, 150));
-
-    // Update debounced function when handleScroll changes
     useEffect(() => {
-        debouncedHandleScroll.current = debounce(handleScroll, 150);
-    }, [handleScroll]);
-
-    useEffect(() => {
-        // Initial visibility after mount (fade in effect)
-        const timer = setTimeout(() => {
-            if (window.scrollY >= 100) {
-                setIsVisible(true);
-            }
-        }, 500);
+        // Check initial visibility immediately
+        if (window.scrollY >= 300) {
+            setIsVisible(true);
+        }
 
         // Add scroll listener for header proximity detection
-        window.addEventListener('scroll', debouncedHandleScroll.current, { passive: true });
+        window.addEventListener('scroll', handleScroll, { passive: true });
 
         // IntersectionObserver for footer detection (performance optimization)
         const footer = document.querySelector('footer');
+        let footerObserver: IntersectionObserver | null = null;
+
         if (footer) {
-            footerObserverRef.current = new IntersectionObserver(
+            footerObserver = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
                         // Hide button when footer is visible
                         if (entry.isIntersecting) {
                             setIsVisible(false);
-                        } else if (window.scrollY >= 100) {
+                        } else if (window.scrollY >= 300) {
                             // Show button when footer is not visible AND not near header
                             setIsVisible(true);
                         }
@@ -99,16 +78,15 @@ export default function WhatsAppFloatButton({
                 }
             );
 
-            footerObserverRef.current.observe(footer);
+            footerObserver.observe(footer);
         }
 
         // Cleanup
         return () => {
-            clearTimeout(timer);
-            window.removeEventListener('scroll', debouncedHandleScroll.current);
-            if (footerObserverRef.current && footer) {
-                footerObserverRef.current.unobserve(footer);
-                footerObserverRef.current.disconnect();
+            window.removeEventListener('scroll', handleScroll);
+            if (footerObserver && footer) {
+                footerObserver.unobserve(footer);
+                footerObserver.disconnect();
             }
         };
     }, [handleScroll]);
