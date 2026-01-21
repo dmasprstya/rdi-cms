@@ -88,7 +88,7 @@ export function CorePillarsSection({ content }: CorePillarsSectionProps) {
                 </ScrollReveal>
 
                 {/* Carousel Container */}
-                <div className="relative max-w-7xl mx-auto">
+                <div className="relative max-w-7xl mx-auto px-0 md:px-14 lg:px-16">
                     {/* Carousel Viewport */}
                     <div className="overflow-hidden" ref={emblaRef}>
                         <div className="flex gap-4 md:gap-6">
@@ -181,7 +181,7 @@ export function CorePillarsSection({ content }: CorePillarsSectionProps) {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-10 rounded-full bg-background shadow-lg hover:bg-accent"
+                                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/95 shadow-lg hover:bg-accent border-2 hover:border-primary"
                                 onClick={scrollPrev}
                                 aria-label="Previous slide"
                             >
@@ -190,7 +190,7 @@ export function CorePillarsSection({ content }: CorePillarsSectionProps) {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-full z-10 rounded-full bg-background shadow-lg hover:bg-accent"
+                                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/95 shadow-lg hover:bg-accent border-2 hover:border-primary"
                                 onClick={scrollNext}
                                 aria-label="Next slide"
                             >
