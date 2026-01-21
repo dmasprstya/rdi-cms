@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import { db } from '@/db';
 import { news, newsImages } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { deleteImageFromBlob, isVercelBlobUrl } from '@/lib/blob-cleanup';
 
 // GET - Fetch single news by ID
 export async function GET(
@@ -150,10 +151,43 @@ export async function PUT(
 
         await db.update(news).set(updateData).where(eq(news.id, params.id));
 
+        // Cleanup old featured image if it was changed
+        if (featuredImage !== undefined &&
+            existingNews.featuredImage &&
+            existingNews.featuredImage !== featuredImage &&
+            isVercelBlobUrl(existingNews.featuredImage)) {
+            deleteImageFromBlob(existingNews.featuredImage)
+                .then(deleted => {
+                    if (deleted) {
+                        console.log('[NEWS_CLEANUP] Deleted old featured image:', existingNews.featuredImage);
+                    }
+                })
+                .catch(err => console.error('[NEWS_CLEANUP] Failed:', err));
+        }
+
         // Update content images if provided
         if (contentImages !== undefined && Array.isArray(contentImages)) {
-            // Delete existing images
+            // Get existing images before deleting
+            const existingImages = await db.query.newsImages.findMany({
+                where: eq(newsImages.newsId, params.id),
+            });
+
+            // Delete existing images from database
             await db.delete(newsImages).where(eq(newsImages.newsId, params.id));
+
+            // Cleanup old content images from blob storage
+            const newImageUrls = new Set(contentImages.map((img: any) => img.imageUrl));
+            for (const oldImg of existingImages) {
+                if (!newImageUrls.has(oldImg.imageUrl) && isVercelBlobUrl(oldImg.imageUrl)) {
+                    deleteImageFromBlob(oldImg.imageUrl)
+                        .then(deleted => {
+                            if (deleted) {
+                                console.log('[NEWS_CLEANUP] Deleted old content image:', oldImg.imageUrl);
+                            }
+                        })
+                        .catch(err => console.error('[NEWS_CLEANUP] Failed:', err));
+                }
+            }
 
             // Insert new images
             if (contentImages.length > 0) {
@@ -241,8 +275,27 @@ export async function DELETE(
             );
         }
 
-        // Delete news (cascade will delete related images)
+        // Get all images before deleting for blob cleanup
+        const imagesToDelete = await db.query.newsImages.findMany({
+            where: eq(newsImages.newsId, params.id),
+        });
+
+        // Delete news (cascade will delete related images from DB)
         await db.delete(news).where(eq(news.id, params.id));
+
+        // Cleanup blob storage for all images
+        // Featured image
+        if (existingNews.featuredImage && isVercelBlobUrl(existingNews.featuredImage)) {
+            deleteImageFromBlob(existingNews.featuredImage)
+                .catch(err => console.error('[NEWS_DELETE_CLEANUP] Failed:', err));
+        }
+        // Content images
+        for (const img of imagesToDelete) {
+            if (isVercelBlobUrl(img.imageUrl)) {
+                deleteImageFromBlob(img.imageUrl)
+                    .catch(err => console.error('[NEWS_DELETE_CLEANUP] Failed:', err));
+            }
+        }
 
         // Revalidate news pages to clear cache
         // Wrap in try-catch to prevent revalidation errors from breaking the delete

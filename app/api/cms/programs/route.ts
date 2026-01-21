@@ -5,6 +5,7 @@ import { landingPageContent } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
 import { ProgramsContent } from '@/lib/program-data';
+import { cleanupUnusedImages } from '@/lib/blob-cleanup';
 
 // GET - Fetch programs content
 export async function GET(request: NextRequest) {
@@ -114,6 +115,21 @@ export async function POST(request: NextRequest) {
                 })
                 .where(eq(landingPageContent.section, 'rdi-programs'))
                 .returning();
+
+            // Cleanup old images that are no longer used
+            // This runs asynchronously to not block the response
+            cleanupUnusedImages(existingContent.content, content)
+                .then(({ deleted, errors }) => {
+                    if (deleted.length > 0) {
+                        console.log('[PROGRAMS_CLEANUP] Deleted unused images:', deleted);
+                    }
+                    if (errors.length > 0) {
+                        console.warn('[PROGRAMS_CLEANUP] Errors:', errors);
+                    }
+                })
+                .catch((err) => {
+                    console.error('[PROGRAMS_CLEANUP] Failed:', err);
+                });
         } else {
             // Create new content
             [result] = await db

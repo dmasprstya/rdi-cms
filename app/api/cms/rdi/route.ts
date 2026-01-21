@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import { db } from '@/db';
 import { landingPageContent } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { cleanupUnusedImages } from '@/lib/blob-cleanup';
 
 // RDI Landing Page sections
 const RDI_SECTIONS = [
@@ -131,6 +132,21 @@ export async function POST(request: NextRequest) {
                 })
                 .where(eq(landingPageContent.section, section))
                 .returning();
+
+            // Cleanup old images that are no longer used
+            // This runs asynchronously to not block the response
+            cleanupUnusedImages(existingContent.content, content)
+                .then(({ deleted, errors }) => {
+                    if (deleted.length > 0) {
+                        console.log(`[RDI_CLEANUP:${section}] Deleted unused images:`, deleted);
+                    }
+                    if (errors.length > 0) {
+                        console.warn(`[RDI_CLEANUP:${section}] Errors:`, errors);
+                    }
+                })
+                .catch((err) => {
+                    console.error(`[RDI_CLEANUP:${section}] Failed:`, err);
+                });
         } else {
             // Create new content
             [result] = await db
