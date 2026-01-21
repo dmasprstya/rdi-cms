@@ -290,7 +290,7 @@ export async function fetchRDISection<T>(section: string): Promise<T | null> {
         [`rdi-section-${section}`],
         {
             tags: [`rdi-section-${section}`, 'rdi-content'],
-            revalidate: 60 // Revalidate every 60 seconds
+            revalidate: false // Only revalidate via tags (on-demand) - prevents cache race conditions
         }
     )();
 }
@@ -347,7 +347,7 @@ export async function getHeroImages(): Promise<HeroImage[]> {
         ['hero-images'],
         {
             tags: ['hero-images', 'rdi-content'],
-            revalidate: 60
+            revalidate: false // Only revalidate via tags (on-demand)
         }
     )();
 }
@@ -384,7 +384,7 @@ export async function getNavbarContent(): Promise<NavbarContent> {
         ['navbar-content'],
         {
             tags: ['navbar-content', 'rdi-content'],
-            revalidate: 3600 // Cache for 1 hour - navbar content rarely changes
+            revalidate: false // Only revalidate via tags (on-demand)
         }
     )();
 }
@@ -430,7 +430,7 @@ export async function getWhatsAppFloatContent(): Promise<WhatsAppFloatContent> {
         ['whatsapp-float-content'],
         {
             tags: ['whatsapp-float-content', 'rdi-content'],
-            revalidate: 3600 // Cache for 1 hour
+            revalidate: false // Only revalidate via tags (on-demand)
         }
     )();
 }
