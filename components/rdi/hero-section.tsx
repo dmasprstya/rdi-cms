@@ -161,7 +161,7 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
+                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 lg:gap-0">
                     {/* Left Column - Hero Section with Image/Video Background */}
                     <div className="relative flex flex-col">
                         {/* Hero Content Area with Background */}
@@ -302,17 +302,29 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
                                 <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
-                    </div>
 
-                    {/* Right Column - News Sidebar */}
-                    <div className="flex flex-col bg-background border-t lg:border-t-0">
-                        <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
-                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4 sm:mb-4">
+                        {/* News Section - Below About (visible on mobile & tablet) */}
+                        <div className="lg:hidden bg-background border-t py-4 sm:py-6 md:py-8">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
                                 {content.newsSidebarTitle || 'Berita Terbaru'}
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                                 {newsItems.slice(0, 3).map((news, index) => (
                                     <NewsCard key={index} news={news} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - News Sidebar (visible on desktop only) */}
+                    <div className="hidden lg:flex flex-col bg-background">
+                        <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={`desktop-${index}`} news={news} />
                                 ))}
                             </div>
                         </div>
@@ -328,7 +340,7 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
+                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 lg:gap-0">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Video & Hero Content */}
@@ -394,17 +406,31 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
                                 <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
-                    </div>
 
-                    {/* Right Column - News Sidebar */}
-                    <div className="bg-background border-t lg:border-t-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
-                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">
+                        {/* News Section - Below About (visible on mobile & tablet) */}
+                        <div className="lg:hidden bg-background border-t py-4 sm:py-6 md:py-8">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
                                 {content.newsSidebarTitle || 'Berita Terbaru'}
                             </h3>
-                            {newsItems.slice(0, 3).map((news, index) => (
-                                <NewsCard key={index} news={news} />
-                            ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={index} news={news} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - News Sidebar (visible on desktop only) */}
+                    <div className="hidden lg:flex flex-col bg-background">
+                        <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={`desktop-${index}`} news={news} />
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -418,7 +444,7 @@ function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { con
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
+                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 lg:gap-0">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Static Image & Hero Content */}
@@ -486,17 +512,31 @@ function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { con
                                 <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
-                    </div>
 
-                    {/* Right Column - News Sidebar */}
-                    <div className="bg-background border-t lg:border-t-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
-                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">
+                        {/* News Section - Below About (visible on mobile & tablet) */}
+                        <div className="lg:hidden bg-background border-t py-4 sm:py-6 md:py-8">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
                                 {content.newsSidebarTitle || 'Berita Terbaru'}
                             </h3>
-                            {newsItems.slice(0, 3).map((news, index) => (
-                                <NewsCard key={index} news={news} />
-                            ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={index} news={news} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - News Sidebar (visible on desktop only) */}
+                    <div className="hidden lg:flex flex-col bg-background">
+                        <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={`desktop-${index}`} news={news} />
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -511,7 +551,7 @@ function DefaultHeroLayout({ content, scrollToPrograms, newsItems }: { content: 
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
+                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 lg:gap-0">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Hero Content */}
@@ -566,17 +606,31 @@ function DefaultHeroLayout({ content, scrollToPrograms, newsItems }: { content: 
                                 <ReadMoreText text={content.aboutDescription} maxWords={28} />
                             </div>
                         )}
-                    </div>
 
-                    {/* Right Column - News Sidebar */}
-                    <div className="bg-background border-t lg:border-t-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 max-w-md mx-auto lg:max-w-none">
-                            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-foreground col-span-full">
+                        {/* News Section - Below About (visible on mobile & tablet) */}
+                        <div className="lg:hidden bg-background border-t py-4 sm:py-6 md:py-8">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
                                 {content.newsSidebarTitle || 'Berita Terbaru'}
                             </h3>
-                            {newsItems.slice(0, 3).map((news, index) => (
-                                <NewsCard key={index} news={news} />
-                            ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={index} news={news} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - News Sidebar (visible on desktop only) */}
+                    <div className="hidden lg:flex flex-col bg-background">
+                        <div className="p-4 sm:p-6 md:p-8 space-y-3 sm:space-y-4">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-4">
+                                {content.newsSidebarTitle || 'Berita Terbaru'}
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                                {newsItems.slice(0, 3).map((news, index) => (
+                                    <NewsCard key={`desktop-${index}`} news={news} />
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
