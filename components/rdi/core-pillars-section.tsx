@@ -97,7 +97,7 @@ export function CorePillarsSection({ content }: CorePillarsSectionProps) {
                                 return (
                                     <div
                                         key={index}
-                                        className="flex-[0_0_100%] sm:flex-[0_0_100%] md:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(50%-16px)] min-w-0 shrink-0"
+                                        className="flex-[0_0_100%] sm:flex-[0_0_85%] md:flex-[0_0_75%] lg:flex-[0_0_calc(50%-16px)] min-w-0 shrink-0"
                                     >
                                         <motion.div
                                             whileHover={{ scale: 1.03, y: -6 }}

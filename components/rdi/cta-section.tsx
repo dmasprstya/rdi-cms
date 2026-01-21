@@ -44,7 +44,7 @@ export function CTASection({ content }: CTASectionProps) {
                         <span className="text-xs sm:text-sm font-semibold text-foreground">Chat Via WhatsApp</span>
                     </div>
 
-                    <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-5 leading-tight">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-5 leading-tight">
                         {content.title}
                     </h2>
                     <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">

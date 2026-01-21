@@ -161,7 +161,7 @@ export function HeroSection({ content, images, newsItems }: HeroSectionProps) {
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
                     {/* Left Column - Hero Section with Image/Video Background */}
                     <div className="relative flex flex-col">
                         {/* Hero Content Area with Background */}
@@ -328,7 +328,7 @@ function VideoHeroLayout({ content, scrollToPrograms, newsItems }: { content: He
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Video & Hero Content */}
@@ -418,7 +418,7 @@ function StaticHeroLayout({ content, image, scrollToPrograms, newsItems }: { con
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Static Image & Hero Content */}
@@ -511,7 +511,7 @@ function DefaultHeroLayout({ content, scrollToPrograms, newsItems }: { content: 
     return (
         <section className="py-8 sm:py-12 md:py-16 bg-muted/30">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] lg:grid-cols-[2fr_1fr] max-w-7xl mx-auto gap-4 md:gap-0">
                     {/* Left Column - Two separate sections stacked */}
                     <div className="flex flex-col">
                         {/* Top: Hero Content */}

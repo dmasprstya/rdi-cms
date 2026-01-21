@@ -36,7 +36,7 @@ export function LatestNewsSection({ content }: LatestNewsSectionProps) {
                 </ScrollReveal>
 
                 {/* News Grid */}
-                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mb-12">
                     {content.newsItems.map((news, idx) => (
                         <ScrollReveal
                             key={idx}

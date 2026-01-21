@@ -57,7 +57,7 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
                             <GraduationCap className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
                         )}
                         <span
-                            className="text-lg sm:text-xl lg:text-2xl font-bold"
+                            className="text-base lg:text-lg xl:text-xl font-bold"
                             style={{ color: content.logoTextColor || 'inherit' }}
                         >
                             {content.logoText}
@@ -65,12 +65,12 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="hidden lg:flex items-center space-x-3 lg:space-x-4 xl:space-x-6">
                         {content.menuItems.map((item, index) => (
                             <Link
                                 key={index}
                                 href={item.href}
-                                className="hover:text-primary transition-colors font-medium text-foreground"
+                                className="hover:text-primary transition-colors font-medium text-foreground text-sm lg:text-base whitespace-nowrap"
                             >
                                 {item.label}
                             </Link>
@@ -80,7 +80,7 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
                         <div className="flex items-center gap-1">
                             <Link
                                 href="/program"
-                                className="hover:text-primary transition-colors font-medium text-foreground"
+                                className="hover:text-primary transition-colors font-medium text-foreground text-sm lg:text-base whitespace-nowrap"
                             >
                                 Program
                             </Link>
@@ -120,11 +120,11 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
 
                         <ThemeToggle />
 
-                        <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                        <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs lg:text-sm px-3 lg:px-4 xl:px-6">
                             <Link href="/#kontak">{content.contactText}</Link>
                         </Button>
 
-                        <Button asChild variant="ghost" className="bg-primary/10 backdrop-blur-sm text-primary hover:bg-primary/20 hover:text-primary font-semibold">
+                        <Button asChild size="sm" variant="ghost" className="bg-primary/10 backdrop-blur-sm text-primary hover:bg-primary/20 hover:text-primary font-semibold text-xs lg:text-sm px-3 lg:px-4 xl:px-6">
                             <Link href="/login">{content.loginText}</Link>
                         </Button>
                     </div>
@@ -132,7 +132,7 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="md:hidden p-2 hover:bg-muted rounded-md transition-colors text-foreground"
+                        className="lg:hidden p-2 hover:bg-muted rounded-md transition-colors text-foreground"
                         aria-label="Toggle mobile menu"
                     >
                         {isMobileMenuOpen ? (
@@ -145,7 +145,7 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
 
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden pb-4 animate-fade-in">
+                    <div className="lg:hidden pb-4 animate-fade-in">
                         <div className="flex flex-col space-y-3">
                             {content.menuItems.map((item, index) => (
                                 <Link
