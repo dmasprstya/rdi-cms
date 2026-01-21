@@ -150,6 +150,14 @@ export async function POST(request: NextRequest) {
         revalidateTag(`rdi-section-${section}`);
         revalidateTag('rdi-content');
 
+        // Additional tags for sections that use dedicated cache keys
+        if (section === 'rdi-navbar') {
+            revalidateTag('navbar-content');
+        }
+        if (section === 'rdi-whatsapp-float') {
+            revalidateTag('whatsapp-float-content');
+        }
+
         // Also revalidate pages that use this content
         revalidatePath('/'); // Landing page
         revalidatePath('/program/luar-negeri'); // Program pages

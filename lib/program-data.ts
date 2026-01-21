@@ -397,7 +397,7 @@ export async function fetchProgramsContent(): Promise<ProgramsContent | null> {
         ["programs-content"],
         {
             tags: ["programs-content", "rdi-content"],
-            revalidate: 3600 // Cache for 1 hour - program content rarely changes
+            revalidate: false // Only revalidate via tags (on-demand) - prevents cache race conditions
         }
     )();
 }

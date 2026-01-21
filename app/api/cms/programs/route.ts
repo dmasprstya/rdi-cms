@@ -127,9 +127,15 @@ export async function POST(request: NextRequest) {
                 .returning();
         }
 
-        // Revalidate cache
-        revalidateTag('rdi-section-rdi-programs');
+        // Revalidate cache - must match tags used in unstable_cache
+        revalidateTag('programs-content'); // This is the tag used in program-data.ts
+        revalidateTag('rdi-section-rdi-programs'); // Keep for backwards compatibility
         revalidateTag('rdi-content');
+
+        // Also revalidate pages that use this content
+        const { revalidatePath } = await import('next/cache');
+        revalidatePath('/'); // Landing page
+        revalidatePath('/program'); // Program list page
 
         return NextResponse.json({
             success: true,

@@ -182,6 +182,11 @@ export async function PUT(
         // Revalidate news pages to clear cache
         // Wrap in try-catch to prevent revalidation errors from breaking the update
         try {
+            // Invalidate unstable_cache for landing page news
+            const { revalidateTag } = await import('next/cache');
+            revalidateTag('landing-latest-news'); // Used in getLatestNewsForLanding
+            revalidateTag('news-content');
+
             revalidatePath('/', 'page'); // Landing page Latest News section
             revalidatePath('/berita');
             revalidatePath('/api/news');
@@ -242,6 +247,11 @@ export async function DELETE(
         // Revalidate news pages to clear cache
         // Wrap in try-catch to prevent revalidation errors from breaking the delete
         try {
+            // Invalidate unstable_cache for landing page news
+            const { revalidateTag } = await import('next/cache');
+            revalidateTag('landing-latest-news'); // Used in getLatestNewsForLanding
+            revalidateTag('news-content');
+
             revalidatePath('/', 'page'); // Landing page Latest News section
             revalidatePath('/berita');
             revalidatePath('/api/news');
