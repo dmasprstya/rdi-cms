@@ -36,7 +36,7 @@ export function NavbarRDI({ content, programsContent }: NavbarRDIProps) {
 
     return (
         <nav
-            className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/95 backdrop-blur-md shadow-md border-b border-border"
+            className="fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow,backdrop-filter] duration-300 bg-background/95 backdrop-blur-md shadow-md border-b border-border"
         >
             <div className="container mx-auto px-4 lg:px-8">
                 <div className="flex items-center justify-between h-16">

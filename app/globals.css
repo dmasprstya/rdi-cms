@@ -87,9 +87,19 @@
     @apply border-border;
   }
 
+  /* Prevent layout shift from scrollbar appearing */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Disable transitions on initial page load to prevent "zoom" effect */
+  html:not([data-loaded]) * {
+    transition: none !important;
   }
 
   /* Improve dark mode card appearance */
@@ -340,9 +350,9 @@
   @apply bg-white/5;
 }
 
-/* Smooth transitions for theme switching */
+/* Smooth transitions for theme switching - excludes layout-affecting properties */
 * {
-  transition-property: background-color, border-color, color, fill, stroke;
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }

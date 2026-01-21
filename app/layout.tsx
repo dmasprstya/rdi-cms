@@ -40,7 +40,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <head></head>
+      <head>
+        {/* Enable transitions only after page has fully loaded to prevent layout shift "zoom" effect */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (document.readyState === 'complete') {
+                document.documentElement.setAttribute('data-loaded', 'true');
+              } else {
+                window.addEventListener('load', function() {
+                  requestAnimationFrame(function() {
+                    document.documentElement.setAttribute('data-loaded', 'true');
+                  });
+                });
+              }
+            `,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <MotionProvider>
           <ThemeProvider defaultTheme="light" storageKey="sts-ui-theme">
