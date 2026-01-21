@@ -205,8 +205,6 @@ const DEFAULT_TRUST_PARTNERS: TrustPartnersContent = {
     partners: [
         { name: 'Goethe Institut', logo: '/logos/goethe.png' },
         { name: 'Chunghua University', logo: '/logos/chunghua.png' },
-        { name: 'BPJPH', logo: '/logos/bpjph.png' },
-        { name: 'LSP Halal', logo: '/logos/lsp-halal.png' },
         { name: 'Izumi Corporation', logo: '/logos/izumi.png' },
     ],
 };
