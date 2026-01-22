@@ -9,11 +9,13 @@ import { ProgramItem } from '@/lib/program-data';
 interface ProgramItemCardProps {
     item: ProgramItem;
     category: {
+        slug: string;
         badge: string;
         gradientFrom: string;
         gradientTo: string;
     };
 }
+
 
 export function ProgramItemCard({ item, category }: ProgramItemCardProps) {
     return (
@@ -70,7 +72,7 @@ export function ProgramItemCard({ item, category }: ProgramItemCardProps) {
                 {/* CTA Button */}
                 <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
                     <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm md:text-base font-semibold group-hover:shadow-lg transition-all">
-                        <Link href={item.ctaButtonLink}>
+                        <Link href={`/program/${category.slug}/${item.slug}`}>
                             {item.ctaButtonText}
                         </Link>
                     </Button>

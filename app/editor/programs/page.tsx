@@ -171,19 +171,38 @@ export default function ProgramsEditor() {
     };
 
     const updateCategory = (id: string, field: keyof ProgramCategory, value: string | number) => {
+        let newSlug: string | null = null;
+
         const newCategories = content.categories.map(cat => {
             if (cat.id === id) {
                 const updated = { ...cat, [field]: value };
                 // Auto-update slug when title changes
                 if (field === 'title') {
                     updated.slug = generateSlug(value as string);
+                    newSlug = updated.slug;
                 }
                 return updated;
             }
             return cat;
         });
-        setContent({ ...content, categories: newCategories });
+
+        // If slug changed, update all items' ctaButtonLink that belong to this category
+        let newItems = content.items;
+        if (newSlug) {
+            newItems = content.items.map(item => {
+                if (item.categoryId === id) {
+                    return {
+                        ...item,
+                        ctaButtonLink: `/program/${newSlug}/${item.slug}`,
+                    };
+                }
+                return item;
+            });
+        }
+
+        setContent({ ...content, categories: newCategories, items: newItems });
     };
+
 
     const deleteCategory = (id: string) => {
         if (!confirm('Apakah Anda yakin ingin menghapus kategori ini? Semua item dalam kategori akan kehilangan relasinya.')) {
