@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BreadcrumbNav } from '@/components/rdi/breadcrumb-nav';
-import { CheckCircle, Clock, Award, Users, DollarSign, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Clock, Award, Users, DollarSign, ArrowLeft, Download } from 'lucide-react';
 import {
     getProgramCategory,
     getProgramItem,
@@ -221,12 +221,33 @@ export default async function ItemPage({ params }: ItemPageProps) {
 
                             {/* CTA */}
                             <div className="pt-6 border-t">
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" asChild>
                                         <a href={item.ctaButtonLinkDetail || item.ctaButtonLink} target={item.ctaButtonLinkDetail?.startsWith('http') ? '_blank' : undefined} rel={item.ctaButtonLinkDetail?.startsWith('http') ? 'noopener noreferrer' : undefined}>
                                             {item.ctaButtonTextDetail || item.ctaButtonText}
                                         </a>
                                     </Button>
+
+                                    {/* Download Button - only show if enabled and has URL */}
+                                    {item.downloadButton?.enabled && item.downloadButton?.fileUrl && (
+                                        <Button
+                                            size="lg"
+                                            variant="secondary"
+                                            className="bg-green-600 hover:bg-green-700 text-white font-semibold"
+                                            asChild
+                                        >
+                                            <a
+                                                href={item.downloadButton.fileUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                download
+                                            >
+                                                <Download className="w-4 h-4 mr-2" />
+                                                {item.downloadButton.label || 'Download File'}
+                                            </a>
+                                        </Button>
+                                    )}
+
                                     <Button size="lg" variant="outline" asChild>
                                         <a href={`/program/${category.slug}`}>
                                             Lihat Program Lainnya

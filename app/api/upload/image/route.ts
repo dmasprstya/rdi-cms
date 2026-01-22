@@ -11,6 +11,7 @@ const UPLOAD_DIRS = {
     program: 'media/programs',
     news: 'media/news',
     newsContent: 'media/news/content',
+    programDownload: 'media/programs/downloads', // For downloadable files (PDF, DOC, images)
 } as const;
 
 type UploadType = keyof typeof UPLOAD_DIRS;
@@ -24,7 +25,15 @@ const COMPRESSION_SETTINGS = {
     program: { maxWidth: 1280, maxHeight: 720, quality: 80 },
     news: { maxWidth: 1280, maxHeight: 720, quality: 80 },
     newsContent: { maxWidth: 1280, maxHeight: 1280, quality: 80 },
+    programDownload: { maxWidth: 1280, maxHeight: 720, quality: 80 }, // Only used for images
 } as const;
+
+// Document types that are allowed for programDownload
+const DOCUMENT_TYPES = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
 
 export async function POST(request: NextRequest) {
     try {
@@ -47,15 +56,27 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Validate file type - support images and videos
+        // Validate file type - support images, videos, and documents (for programDownload)
         const isImage = file.type.startsWith('image/');
         const isVideo = file.type.startsWith('video/');
+        const isDocument = DOCUMENT_TYPES.includes(file.type);
 
-        if (!isImage && !isVideo) {
-            return NextResponse.json({
-                success: false,
-                error: 'File must be an image or video'
-            }, { status: 400 });
+        // For programDownload type, allow documents as well
+        if (uploadType === 'programDownload') {
+            if (!isImage && !isDocument) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'File harus berupa gambar (JPG, PNG, WebP) atau dokumen (PDF, DOC/DOCX)'
+                }, { status: 400 });
+            }
+        } else {
+            // For other types, only allow images and videos
+            if (!isImage && !isVideo) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'File must be an image or video'
+                }, { status: 400 });
+            }
         }
 
         // Validate file size (10MB limit for original, will be compressed)
@@ -92,6 +113,14 @@ export async function POST(request: NextRequest) {
             contentType = 'image/webp';
 
             console.log(`✓ Image compressed: ${file.size} bytes → ${uploadBuffer.length} bytes (${Math.round((1 - uploadBuffer.length / file.size) * 100)}% reduction)`);
+        } else if (isDocument) {
+            // Document: no compression, upload as-is
+            uploadBuffer = Buffer.from(await file.arrayBuffer());
+            const ext = file.name.split('.').pop() || 'pdf';
+            filename = `${timestamp}-${originalName}.${ext}`;
+            contentType = file.type;
+
+            console.log(`✓ Document uploaded: ${file.name} (${file.size} bytes)`);
         } else {
             // Video: no compression, upload as-is
             uploadBuffer = Buffer.from(await file.arrayBuffer());
@@ -115,16 +144,18 @@ export async function POST(request: NextRequest) {
             success: true,
             url: blob.url,
             filename: filename,
-            type: isVideo ? 'video' : 'image',
+            type: isDocument ? 'document' : (isVideo ? 'video' : 'image'),
             originalSize: file.size,
             compressedSize: uploadBuffer.length,
         });
 
     } catch (error) {
         console.error('Error uploading file:', error);
+        // Return more detailed error message
+        const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';
         return NextResponse.json({
             success: false,
-            error: 'Failed to upload file'
+            error: errorMessage
         }, { status: 500 });
     }
 }

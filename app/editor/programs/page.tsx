@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Eye, Loader2, Plus, Trash2, Upload, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ArrowLeft, Save, Eye, Loader2, Plus, Trash2, Upload, ChevronUp, ChevronDown, ChevronRight, Download, FileText } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 
@@ -59,6 +60,12 @@ type ProgramItem = {
         salary?: string;
         benefits?: string[];
     };
+    downloadButton?: {
+        enabled: boolean;
+        label: string;
+        fileUrl: string;
+        fileName?: string;
+    };
 };
 
 type ProgramsContent = {
@@ -83,6 +90,7 @@ export default function ProgramsEditor() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploadingId, setUploadingId] = useState<string | null>(null);
+    const [uploadingDownloadId, setUploadingDownloadId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('categories');
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -431,6 +439,81 @@ export default function ProgramsEditor() {
             });
         } finally {
             setUploadingId(null);
+        }
+    };
+
+    // Handle download file upload (PDF, DOC, images)
+    const handleDownloadFileUpload = async (itemId: string, file: File) => {
+        if (!file) return;
+
+        // Validate file type - allow PDF, DOC/DOCX, and images
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            toast({
+                title: 'Error',
+                description: 'File harus berupa PDF, DOC/DOCX, atau gambar',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        // Max 10MB
+        if (file.size > 10 * 1024 * 1024) {
+            toast({
+                title: 'Error',
+                description: 'Ukuran file maksimal 10MB',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setUploadingDownloadId(itemId);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload/image?type=programDownload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update download button config
+                const item = content.items.find(i => i.id === itemId);
+                updateItem(itemId, 'downloadButton', {
+                    enabled: item?.downloadButton?.enabled ?? true,
+                    label: item?.downloadButton?.label || 'Download File',
+                    fileUrl: data.url,
+                    fileName: file.name,
+                });
+                toast({
+                    title: 'Berhasil',
+                    description: 'File berhasil diupload',
+                });
+            } else {
+                throw new Error(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            toast({
+                title: 'Error',
+                description: 'Gagal mengupload file',
+                variant: 'destructive',
+            });
+        } finally {
+            setUploadingDownloadId(null);
         }
     };
 
@@ -940,6 +1023,149 @@ export default function ProgramsEditor() {
                                                                 placeholder="https://wa.me/... atau /form"
                                                             />
                                                         </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Download Button Section */}
+                                                <div>
+                                                    <Label className="text-sm font-semibold mb-3 block">
+                                                        Download Button (Opsional)
+                                                    </Label>
+                                                    <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
+                                                        {/* Toggle Enable */}
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="space-y-0.5">
+                                                                <Label htmlFor={`download-enabled-${item.id}`}>
+                                                                    Tampilkan Tombol Download
+                                                                </Label>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    Aktifkan untuk menampilkan tombol download di halaman detail
+                                                                </p>
+                                                            </div>
+                                                            <Switch
+                                                                id={`download-enabled-${item.id}`}
+                                                                checked={item.downloadButton?.enabled ?? false}
+                                                                onCheckedChange={(checked) => {
+                                                                    updateItem(item.id, 'downloadButton', {
+                                                                        ...item.downloadButton,
+                                                                        enabled: checked,
+                                                                        label: item.downloadButton?.label || 'Download File',
+                                                                        fileUrl: item.downloadButton?.fileUrl || '',
+                                                                    });
+                                                                }}
+                                                            />
+                                                        </div>
+
+                                                        {/* Only show config if enabled */}
+                                                        {item.downloadButton?.enabled && (
+                                                            <>
+                                                                {/* Button Label */}
+                                                                <div className="space-y-2">
+                                                                    <Label htmlFor={`download-label-${item.id}`} className="text-xs">
+                                                                        Label Tombol
+                                                                    </Label>
+                                                                    <Input
+                                                                        id={`download-label-${item.id}`}
+                                                                        value={item.downloadButton?.label || ''}
+                                                                        onChange={(e) => {
+                                                                            updateItem(item.id, 'downloadButton', {
+                                                                                ...item.downloadButton,
+                                                                                enabled: true,
+                                                                                label: e.target.value,
+                                                                                fileUrl: item.downloadButton?.fileUrl || '',
+                                                                            });
+                                                                        }}
+                                                                        placeholder="Download Proposal"
+                                                                    />
+                                                                </div>
+
+                                                                {/* File Upload */}
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-xs">
+                                                                        File Download
+                                                                        <span className="text-muted-foreground ml-2 font-normal">
+                                                                            (PDF, DOC, atau gambar, max 10MB)
+                                                                        </span>
+                                                                    </Label>
+                                                                    <div className="flex gap-2">
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="flex-1"
+                                                                            disabled={uploadingDownloadId === item.id}
+                                                                            onClick={() => {
+                                                                                const input = document.createElement('input');
+                                                                                input.type = 'file';
+                                                                                input.accept = '.pdf,.doc,.docx,image/*';
+                                                                                input.onchange = (e) => {
+                                                                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                                                                    if (file) handleDownloadFileUpload(item.id, file);
+                                                                                };
+                                                                                input.click();
+                                                                            }}
+                                                                        >
+                                                                            {uploadingDownloadId === item.id ? (
+                                                                                <>
+                                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                                    Uploading...
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    <Upload className="w-4 h-4 mr-2" />
+                                                                                    Upload File
+                                                                                </>
+                                                                            )}
+                                                                        </Button>
+                                                                    </div>
+
+                                                                    {/* Show uploaded file info */}
+                                                                    {item.downloadButton?.fileUrl && (
+                                                                        <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                                                                            <FileText className="w-5 h-5 text-green-600" />
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="text-sm font-medium text-foreground truncate">
+                                                                                    {item.downloadButton?.fileName || 'File uploaded'}
+                                                                                </p>
+                                                                                <p className="text-xs text-muted-foreground truncate">
+                                                                                    {item.downloadButton?.fileUrl}
+                                                                                </p>
+                                                                            </div>
+                                                                            <Button
+                                                                                type="button"
+                                                                                size="icon"
+                                                                                variant="ghost"
+                                                                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                                                                onClick={() => {
+                                                                                    updateItem(item.id, 'downloadButton', {
+                                                                                        ...item.downloadButton,
+                                                                                        enabled: item.downloadButton?.enabled ?? false,
+                                                                                        label: item.downloadButton?.label || '',
+                                                                                        fileUrl: '',
+                                                                                        fileName: undefined,
+                                                                                    });
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Manual URL input */}
+                                                                    <Input
+                                                                        value={item.downloadButton?.fileUrl || ''}
+                                                                        onChange={(e) => {
+                                                                            updateItem(item.id, 'downloadButton', {
+                                                                                ...item.downloadButton,
+                                                                                enabled: true,
+                                                                                label: item.downloadButton?.label || 'Download File',
+                                                                                fileUrl: e.target.value,
+                                                                            });
+                                                                        }}
+                                                                        placeholder="Atau masukkan URL file manual..."
+                                                                    />
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

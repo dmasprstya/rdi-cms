@@ -48,6 +48,13 @@ export interface ProgramItem {
         salary?: string;
         benefits?: string[];
     };
+    // Download button configuration (optional per program)
+    downloadButton?: {
+        enabled: boolean;      // Toggle visibility
+        label: string;         // Button text, e.g., "Download Proposal"
+        fileUrl: string;       // URL to the downloadable file
+        fileName?: string;     // Original filename for display
+    };
 }
 
 export interface ProgramsContent {
@@ -79,6 +86,8 @@ export function migrateProgramItem(item: any): ProgramItem {
         // Keep existing link, or use it for both if no detail link specified
         ctaButtonLink: item.ctaButtonLink || '',
         ctaButtonLinkDetail: item.ctaButtonLinkDetail || item.ctaButtonLink || '',
+        // Migrate downloadButton - default to undefined if not present
+        downloadButton: item.downloadButton || undefined,
     };
 }
 
