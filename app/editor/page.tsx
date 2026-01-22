@@ -66,7 +66,7 @@ const sections = [
         status: 'published'
     },
     {
-        title: 'Latest News',
+        title: 'News',
         description: 'Kelola berita terbaru dan kegiatan institusi.',
         href: '/editor/latest-news',
         icon: Newspaper,

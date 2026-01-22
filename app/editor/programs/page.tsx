@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Eye, Loader2, Plus, Trash2, Upload, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Plus, Trash2, Upload, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 
 // CTA text validation
@@ -83,6 +84,9 @@ export default function ProgramsEditor() {
     const [saving, setSaving] = useState(false);
     const [uploadingId, setUploadingId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('categories');
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+    const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+    const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
     const [content, setContent] = useState<ProgramsContent>({
         sectionTitle: 'Dua Pilar Keahlian Kami',
         sectionSubtitle: 'Pilih jalur pengembangan diri yang sesuai dengan kebutuhan Anda',
@@ -212,6 +216,52 @@ export default function ProgramsEditor() {
         });
         setContent({ ...content, categories: newCategories });
     };
+
+    // Toggle functions for collapsible cards
+    const toggleCategory = (id: string) => {
+        setExpandedCategories(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const toggleItem = (id: string) => {
+        setExpandedItems(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const expandAllCategories = () => {
+        setExpandedCategories(new Set(content.categories.map(c => c.id)));
+    };
+
+    const collapseAllCategories = () => {
+        setExpandedCategories(new Set());
+    };
+
+    const expandAllItems = () => {
+        setExpandedItems(new Set(content.items.map(i => i.id)));
+    };
+
+    const collapseAllItems = () => {
+        setExpandedItems(new Set());
+    };
+
+    // Filter items by category
+    const filteredItems = selectedCategoryFilter === 'all'
+        ? content.items
+        : content.items.filter(item => item.categoryId === selectedCategoryFilter);
 
     // Item Functions
     const addItem = () => {
@@ -458,109 +508,134 @@ export default function ProgramsEditor() {
 
                 {/* Categories Tab */}
                 <TabsContent value="categories" className="space-y-4">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-wrap justify-between items-center gap-2">
                         <p className="text-sm text-muted-foreground">
                             Kelola kategori utama program (max 3-4 kategori)
                         </p>
-                        <Button onClick={addCategory} size="sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Tambah Kategori
-                        </Button>
+                        <div className="flex gap-2">
+                            {content.categories.length > 0 && (
+                                <>
+                                    <Button onClick={expandAllCategories} size="sm" variant="outline">
+                                        Expand All
+                                    </Button>
+                                    <Button onClick={collapseAllCategories} size="sm" variant="outline">
+                                        Collapse All
+                                    </Button>
+                                </>
+                            )}
+                            <Button onClick={addCategory} size="sm">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Tambah Kategori
+                            </Button>
+                        </div>
                     </div>
 
                     {content.categories.map((category, index) => (
-                        <Card key={category.id}>
-                            <CardHeader>
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <CardTitle className="text-xl">{category.title}</CardTitle>
-                                        <CardDescription>Slug: /{category.slug}</CardDescription>
+                        <Collapsible
+                            key={category.id}
+                            open={expandedCategories.has(category.id)}
+                            onOpenChange={() => toggleCategory(category.id)}
+                        >
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between">
+                                        <CollapsibleTrigger asChild>
+                                            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity flex-1">
+                                                <ChevronRight className={`w-5 h-5 transition-transform ${expandedCategories.has(category.id) ? 'rotate-90' : ''}`} />
+                                                <div>
+                                                    <CardTitle className="text-xl">{category.title}</CardTitle>
+                                                    <CardDescription>Slug: /{category.slug} | Badge: {category.badge}</CardDescription>
+                                                </div>
+                                            </div>
+                                        </CollapsibleTrigger>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                onClick={(e) => { e.stopPropagation(); moveCategoryUp(index); }}
+                                                disabled={index === 0}
+                                            >
+                                                <ChevronUp className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="outline"
+                                                onClick={(e) => { e.stopPropagation(); moveCategoryDown(index); }}
+                                                disabled={index === content.categories.length - 1}
+                                            >
+                                                <ChevronDown className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="destructive"
+                                                onClick={(e) => { e.stopPropagation(); deleteCategory(category.id); }}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            size="icon"
-                                            variant="outline"
-                                            onClick={() => moveCategoryUp(index)}
-                                            disabled={index === 0}
-                                        >
-                                            <ChevronUp className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="outline"
-                                            onClick={() => moveCategoryDown(index)}
-                                            disabled={index === content.categories.length - 1}
-                                        >
-                                            <ChevronDown className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="destructive"
-                                            onClick={() => deleteCategory(category.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Title</Label>
-                                        <Input
-                                            value={category.title}
-                                            onChange={(e) => updateCategory(category.id, 'title', e.target.value)}
-                                            placeholder="Pelatihan Kerja"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Badge</Label>
-                                        <Input
-                                            value={category.badge}
-                                            onChange={(e) => updateCategory(category.id, 'badge', e.target.value)}
-                                            placeholder="Global Opportunities"
-                                        />
-                                    </div>
-                                </div>
+                                </CardHeader>
+                                <CollapsibleContent>
+                                    <CardContent className="space-y-4 pt-0">
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Title</Label>
+                                                <Input
+                                                    value={category.title}
+                                                    onChange={(e) => updateCategory(category.id, 'title', e.target.value)}
+                                                    placeholder="Pelatihan Kerja"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Badge</Label>
+                                                <Input
+                                                    value={category.badge}
+                                                    onChange={(e) => updateCategory(category.id, 'badge', e.target.value)}
+                                                    placeholder="Global Opportunities"
+                                                />
+                                            </div>
+                                        </div>
 
-                                <div className="space-y-2">
-                                    <Label>Description</Label>
-                                    <Textarea
-                                        value={category.description}
-                                        onChange={(e) => updateCategory(category.id, 'description', e.target.value)}
-                                        placeholder="Deskripsi kategori..."
-                                        rows={2}
-                                    />
-                                </div>
+                                        <div className="space-y-2">
+                                            <Label>Description</Label>
+                                            <Textarea
+                                                value={category.description}
+                                                onChange={(e) => updateCategory(category.id, 'description', e.target.value)}
+                                                placeholder="Deskripsi kategori..."
+                                                rows={2}
+                                            />
+                                        </div>
 
-                                <div className="grid md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Icon (Lucide)</Label>
-                                        <Input
-                                            value={category.icon}
-                                            onChange={(e) => updateCategory(category.id, 'icon', e.target.value)}
-                                            placeholder="Globe"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Gradient From</Label>
-                                        <Input
-                                            value={category.gradientFrom}
-                                            onChange={(e) => updateCategory(category.id, 'gradientFrom', e.target.value)}
-                                            placeholder="blue-500"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Gradient To</Label>
-                                        <Input
-                                            value={category.gradientTo}
-                                            onChange={(e) => updateCategory(category.id, 'gradientTo', e.target.value)}
-                                            placeholder="blue-700"
-                                        />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                        <div className="grid md:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Icon (Lucide)</Label>
+                                                <Input
+                                                    value={category.icon}
+                                                    onChange={(e) => updateCategory(category.id, 'icon', e.target.value)}
+                                                    placeholder="Globe"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Gradient From</Label>
+                                                <Input
+                                                    value={category.gradientFrom}
+                                                    onChange={(e) => updateCategory(category.id, 'gradientFrom', e.target.value)}
+                                                    placeholder="blue-500"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Gradient To</Label>
+                                                <Input
+                                                    value={category.gradientTo}
+                                                    onChange={(e) => updateCategory(category.id, 'gradientTo', e.target.value)}
+                                                    placeholder="blue-700"
+                                                />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </CollapsibleContent>
+                            </Card>
+                        </Collapsible>
                     ))}
 
                     {content.categories.length === 0 && (
@@ -574,253 +649,297 @@ export default function ProgramsEditor() {
 
                 {/* Items Tab */}
                 <TabsContent value="items" className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <p className="text-sm text-muted-foreground">
-                            Kelola program individual dalam setiap kategori
-                        </p>
-                        <Button onClick={addItem} size="sm" disabled={content.categories.length === 0}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Tambah Program
-                        </Button>
+                    <div className="flex flex-wrap justify-between items-center gap-2">
+                        <div className="flex items-center gap-4">
+                            <p className="text-sm text-muted-foreground">
+                                Kelola program individual
+                            </p>
+                            {content.categories.length > 0 && (
+                                <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Filter kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Semua Kategori</SelectItem>
+                                        {content.categories.map(cat => (
+                                            <SelectItem key={cat.id} value={cat.id}>
+                                                {cat.title}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                            {filteredItems.length > 0 && (
+                                <>
+                                    <Button onClick={expandAllItems} size="sm" variant="outline">
+                                        Expand All
+                                    </Button>
+                                    <Button onClick={collapseAllItems} size="sm" variant="outline">
+                                        Collapse All
+                                    </Button>
+                                </>
+                            )}
+                            <Button onClick={addItem} size="sm" disabled={content.categories.length === 0}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Tambah Program
+                            </Button>
+                        </div>
                     </div>
 
-                    {content.items.map((item) => {
+                    {filteredItems.map((item) => {
                         const category = content.categories.find(c => c.id === item.categoryId);
                         return (
-                            <Card key={item.id}>
-                                <CardHeader>
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <CardTitle className="text-xl">{item.title}</CardTitle>
-                                            <CardDescription>
-                                                Kategori: {category?.title || 'Unknown'} | Slug: /{item.slug}
-                                            </CardDescription>
-                                        </div>
-                                        <Button
-                                            size="icon"
-                                            variant="destructive"
-                                            onClick={() => deleteItem(item.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>Title</Label>
-                                            <Input
-                                                value={item.title}
-                                                onChange={(e) => updateItem(item.id, 'title', e.target.value)}
-                                                placeholder="Program Jepang"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Kategori</Label>
-                                            <Select
-                                                value={item.categoryId}
-                                                onValueChange={(value) => updateItem(item.id, 'categoryId', value)}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {content.categories.map(cat => (
-                                                        <SelectItem key={cat.id} value={cat.id}>
-                                                            {cat.title}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Short Description (Card)</Label>
-                                        <Textarea
-                                            value={item.shortDescription}
-                                            onChange={(e) => updateItem(item.id, 'shortDescription', e.target.value)}
-                                            placeholder="Deskripsi singkat untuk card..."
-                                            rows={2}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Full Description (Detail Page)</Label>
-                                        <Textarea
-                                            value={item.fullDescription}
-                                            onChange={(e) => updateItem(item.id, 'fullDescription', e.target.value)}
-                                            placeholder="Deskripsi lengkap untuk halaman detail..."
-                                            rows={4}
-                                        />
-                                    </div>
-
-                                    {/* Key Features */}
-                                    <div className="space-y-2">
+                            <Collapsible
+                                key={item.id}
+                                open={expandedItems.has(item.id)}
+                                onOpenChange={() => toggleItem(item.id)}
+                            >
+                                <Card>
+                                    <CardHeader className="pb-3">
                                         <div className="flex items-center justify-between">
-                                            <Label>Key Features</Label>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => addFeature(item.id)}
-                                            >
-                                                <Plus className="w-4 h-4 mr-2" />
-                                                Add Feature
-                                            </Button>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {item.keyFeatures.map((feature, featureIndex) => (
-                                                <div key={featureIndex} className="flex gap-2">
-                                                    <Input
-                                                        value={feature}
-                                                        onChange={(e) => updateFeature(item.id, featureIndex, e.target.value)}
-                                                        placeholder="Feature text"
-                                                    />
-                                                    {item.keyFeatures.length > 1 && (
-                                                        <Button
-                                                            type="button"
-                                                            size="icon"
-                                                            variant="destructive"
-                                                            onClick={() => deleteFeature(item.id, featureIndex)}
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    )}
+                                            <CollapsibleTrigger asChild>
+                                                <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity flex-1">
+                                                    <ChevronRight className={`w-5 h-5 transition-transform ${expandedItems.has(item.id) ? 'rotate-90' : ''}`} />
+                                                    <div>
+                                                        <CardTitle className="text-xl">{item.title}</CardTitle>
+                                                        <CardDescription>
+                                                            Kategori: {category?.title || 'Unknown'} | Slug: /{item.slug}
+                                                        </CardDescription>
+                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Featured Image */}
-                                    <div className="space-y-2">
-                                        <Label>Featured Image</Label>
-                                        <div className="flex gap-2">
+                                            </CollapsibleTrigger>
                                             <Button
-                                                type="button"
-                                                variant="outline"
-                                                className="w-full"
-                                                disabled={uploadingId === item.id}
-                                                onClick={() => {
-                                                    const input = document.createElement('input');
-                                                    input.type = 'file';
-                                                    input.accept = 'image/*';
-                                                    input.onchange = (e) => {
-                                                        const file = (e.target as HTMLInputElement).files?.[0];
-                                                        if (file) handleImageUpload(item.id, file);
-                                                    };
-                                                    input.click();
-                                                }}
+                                                size="icon"
+                                                variant="destructive"
+                                                onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
                                             >
-                                                {uploadingId === item.id ? (
-                                                    <>
-                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                        Uploading...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Upload className="w-4 h-4 mr-2" />
-                                                        Upload Image
-                                                    </>
-                                                )}
+                                                <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </div>
-                                        <Input
-                                            value={item.featuredImage}
-                                            onChange={(e) => updateItem(item.id, 'featuredImage', e.target.value)}
-                                            placeholder="/images/programs/placeholder.svg"
-                                        />
-                                        {item.featuredImage && (
-                                            <div className="relative w-full aspect-video bg-muted rounded overflow-hidden">
-                                                <Image
-                                                    src={item.featuredImage}
-                                                    alt={item.title}
-                                                    fill
-                                                    className="object-cover"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="225"%3E%3Crect width="400" height="225" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
-                                                    }}
+                                    </CardHeader>
+                                    <CollapsibleContent>
+                                        <CardContent className="space-y-4 pt-0">
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>Title</Label>
+                                                    <Input
+                                                        value={item.title}
+                                                        onChange={(e) => updateItem(item.id, 'title', e.target.value)}
+                                                        placeholder="Program Jepang"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Kategori</Label>
+                                                    <Select
+                                                        value={item.categoryId}
+                                                        onValueChange={(value) => updateItem(item.id, 'categoryId', value)}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {content.categories.map(cat => (
+                                                                <SelectItem key={cat.id} value={cat.id}>
+                                                                    {cat.title}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label>Short Description (Card)</Label>
+                                                <Textarea
+                                                    value={item.shortDescription}
+                                                    onChange={(e) => updateItem(item.id, 'shortDescription', e.target.value)}
+                                                    placeholder="Deskripsi singkat untuk card..."
+                                                    rows={2}
                                                 />
                                             </div>
-                                        )}
-                                    </div>
 
-                                    <div className="space-y-4">
-                                        {/* CTA for Card */}
-                                        <div>
-                                            <Label className="text-sm font-semibold mb-3 block">CTA untuk Halaman Utama (Card)</Label>
-                                            <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor={`cta-card-text-${item.id}`} className="text-xs">
-                                                        Button Text
-                                                    </Label>
-                                                    <Input
-                                                        id={`cta-card-text-${item.id}`}
-                                                        value={item.ctaButtonText}
-                                                        onChange={(e) => updateItem(item.id, 'ctaButtonText', e.target.value)}
-                                                        placeholder="Lihat Program →"
-                                                    />
+                                            <div className="space-y-2">
+                                                <Label>Full Description (Detail Page)</Label>
+                                                <Textarea
+                                                    value={item.fullDescription}
+                                                    onChange={(e) => updateItem(item.id, 'fullDescription', e.target.value)}
+                                                    placeholder="Deskripsi lengkap untuk halaman detail..."
+                                                    rows={4}
+                                                />
+                                            </div>
+
+                                            {/* Key Features */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <Label>Key Features</Label>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => addFeature(item.id)}
+                                                    >
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        Add Feature
+                                                    </Button>
                                                 </div>
-
                                                 <div className="space-y-2">
-                                                    <Label htmlFor={`cta-card-link-${item.id}`} className="text-xs">
-                                                        Button Link
-                                                    </Label>
-                                                    <Input
-                                                        id={`cta-card-link-${item.id}`}
-                                                        value={item.ctaButtonLink}
-                                                        onChange={(e) => updateItem(item.id, 'ctaButtonLink', e.target.value)}
-                                                        placeholder="/program/kategori/item"
-                                                    />
+                                                    {item.keyFeatures.map((feature, featureIndex) => (
+                                                        <div key={featureIndex} className="flex gap-2">
+                                                            <Input
+                                                                value={feature}
+                                                                onChange={(e) => updateFeature(item.id, featureIndex, e.target.value)}
+                                                                placeholder="Feature text"
+                                                            />
+                                                            {item.keyFeatures.length > 1 && (
+                                                                <Button
+                                                                    type="button"
+                                                                    size="icon"
+                                                                    variant="destructive"
+                                                                    onClick={() => deleteFeature(item.id, featureIndex)}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* CTA for Detail Page */}
-                                        <div>
-                                            <Label className="text-sm font-semibold mb-3 block">CTA untuk Halaman Detail</Label>
-                                            <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor={`cta-detail-text-${item.id}`} className="text-xs">
-                                                        Button Text
-                                                    </Label>
-                                                    <Input
-                                                        id={`cta-detail-text-${item.id}`}
-                                                        value={item.ctaButtonTextDetail || ''}
-                                                        onChange={(e) => updateItem(item.id, 'ctaButtonTextDetail', e.target.value)}
-                                                        placeholder="Daftar Program →"
-                                                    />
+                                            {/* Featured Image */}
+                                            <div className="space-y-2">
+                                                <Label>Featured Image</Label>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="w-full"
+                                                        disabled={uploadingId === item.id}
+                                                        onClick={() => {
+                                                            const input = document.createElement('input');
+                                                            input.type = 'file';
+                                                            input.accept = 'image/*';
+                                                            input.onchange = (e) => {
+                                                                const file = (e.target as HTMLInputElement).files?.[0];
+                                                                if (file) handleImageUpload(item.id, file);
+                                                            };
+                                                            input.click();
+                                                        }}
+                                                    >
+                                                        {uploadingId === item.id ? (
+                                                            <>
+                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                Uploading...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Upload className="w-4 h-4 mr-2" />
+                                                                Upload Image
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                                <Input
+                                                    value={item.featuredImage}
+                                                    onChange={(e) => updateItem(item.id, 'featuredImage', e.target.value)}
+                                                    placeholder="/images/programs/placeholder.svg"
+                                                />
+                                                {item.featuredImage && (
+                                                    <div className="relative w-full aspect-video bg-muted rounded overflow-hidden">
+                                                        <Image
+                                                            src={item.featuredImage}
+                                                            alt={item.title}
+                                                            fill
+                                                            className="object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="225"%3E%3Crect width="400" height="225" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                {/* CTA for Card */}
+                                                <div>
+                                                    <Label className="text-sm font-semibold mb-3 block">CTA untuk Halaman Utama (Card)</Label>
+                                                    <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`cta-card-text-${item.id}`} className="text-xs">
+                                                                Button Text
+                                                            </Label>
+                                                            <Input
+                                                                id={`cta-card-text-${item.id}`}
+                                                                value={item.ctaButtonText}
+                                                                onChange={(e) => updateItem(item.id, 'ctaButtonText', e.target.value)}
+                                                                placeholder="Lihat Program →"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`cta-card-link-${item.id}`} className="text-xs">
+                                                                Button Link
+                                                            </Label>
+                                                            <Input
+                                                                id={`cta-card-link-${item.id}`}
+                                                                value={item.ctaButtonLink}
+                                                                onChange={(e) => updateItem(item.id, 'ctaButtonLink', e.target.value)}
+                                                                placeholder="/program/kategori/item"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
 
-                                                <div className="space-y-2">
-                                                    <Label htmlFor={`cta-detail-link-${item.id}`} className="text-xs">
-                                                        Button Link
-                                                        <span className="text-muted-foreground ml-2 font-normal">
-                                                            (Form, WhatsApp, dll)
-                                                        </span>
-                                                    </Label>
-                                                    <Input
-                                                        id={`cta-detail-link-${item.id}`}
-                                                        value={item.ctaButtonLinkDetail || ''}
-                                                        onChange={(e) => updateItem(item.id, 'ctaButtonLinkDetail', e.target.value)}
-                                                        placeholder="https://wa.me/... atau /form"
-                                                    />
+                                                {/* CTA for Detail Page */}
+                                                <div>
+                                                    <Label className="text-sm font-semibold mb-3 block">CTA untuk Halaman Detail</Label>
+                                                    <div className="grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`cta-detail-text-${item.id}`} className="text-xs">
+                                                                Button Text
+                                                            </Label>
+                                                            <Input
+                                                                id={`cta-detail-text-${item.id}`}
+                                                                value={item.ctaButtonTextDetail || ''}
+                                                                onChange={(e) => updateItem(item.id, 'ctaButtonTextDetail', e.target.value)}
+                                                                placeholder="Daftar Program →"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`cta-detail-link-${item.id}`} className="text-xs">
+                                                                Button Link
+                                                                <span className="text-muted-foreground ml-2 font-normal">
+                                                                    (Form, WhatsApp, dll)
+                                                                </span>
+                                                            </Label>
+                                                            <Input
+                                                                id={`cta-detail-link-${item.id}`}
+                                                                value={item.ctaButtonLinkDetail || ''}
+                                                                onChange={(e) => updateItem(item.id, 'ctaButtonLinkDetail', e.target.value)}
+                                                                placeholder="https://wa.me/... atau /form"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        </CardContent>
+                                    </CollapsibleContent>
+                                </Card>
+                            </Collapsible>
                         );
                     })}
 
-                    {content.items.length === 0 && (
+                    {filteredItems.length === 0 && (
                         <Card>
                             <CardContent className="py-12 text-center">
                                 <p className="text-muted-foreground">
                                     {content.categories.length === 0
                                         ? 'Buat kategori terlebih dahulu sebelum menambah program.'
-                                        : 'Belum ada program. Klik &quot;Tambah Program&quot; untuk memulai.'}
+                                        : selectedCategoryFilter !== 'all'
+                                            ? 'Tidak ada program dalam kategori ini.'
+                                            : 'Belum ada program. Klik "Tambah Program" untuk memulai.'}
                                 </p>
                             </CardContent>
                         </Card>
